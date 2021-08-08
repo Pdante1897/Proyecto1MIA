@@ -1,19 +1,13 @@
 #include <iostream>
+#include "mkdisk.cpp"
 
 using namespace std;
-void hola_mundo(){
-    cout<<"que pex"<<endl;
-}
+
 
 
 int main()
 {
-    cout<<"holamundo"<<endl;
-    while (true)
-    {
-        
-        hola_mundo();
-    }
-    
+    cout<<"holamundo"<<endl;        
+        hola_mundo();   
     return 0;
 }
