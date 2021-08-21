@@ -1,97 +1,144 @@
 %{
-#include "scanner.h"//se importa el header del analisis sintactico
-#include <QString>
-#include <string>
-#include "qdebug.h"
-#include <iostream>
-#include "obmkdisk.h"
-using namespace std;
-extern int yylineno; //linea actual donde se encuentra el parser (analisis lexico) lo maneja BISON
-extern int columna; //columna actual donde se encuentra el parser (analisis lexico) lo maneja BISON
-extern char *yytext; //lexema actual donde esta el parser (analisis lexico) lo maneja BISON
+    #include "scanner.h"
+    #include "Node.h"
+    #include <iostream>
 
-int yyerror(const char* mens)
-{
-std::cout << mens <<" "<<yytext<< std::endl;
-return 0;
-}
+    extern int yylineno; //linea actual donde se encuentra el parser (analisis lexico) lo maneja BISON
+    extern int columna; //columna actual donde se encuentra el parser (analisis lexico) lo maneja BISON
+    extern char *yytext; //lexema actual donde esta el parser (analisis lexico) lo maneja BISON
+    extern Node *raiz; // Raiz del arbol
+
+    int yyerror(const char* mens){
+        std::cout<<mens<<std::endl;
+        return 0;
+    }
+
+
 %}
-//error-verbose si se especifica la opcion los errores sintacticos son especificados por BISON
+
 %defines "parser.h"
 %output "parser.cpp"
 %define parse.error verbose
-%locations
-%union{
-//se especifican los tipo de valores para los no terminales y lo terminales
-//char TEXT [256];
-//QString TEXT;
-char TEXT[256];
-class obmkdisk *mdisk;
+%union
+    {
+        char text[400];
+        class Node *nodito;
+    }
 
-}
-//TERMINALES DE TIPO TEXT, SON STRINGS
+/*--------------Terminals-------------*/
+%token <text> mkdisk
+%token <text> rmdisk
+%token <text> fdisk
+%token <text> mount
+%token <text> unmount
+%token <text> rep
+%token <text> exec
+%token <text> size
+%token <text> unit
+%token <text> path
+%token <text> fit
+%token <text> name
+%token <text> type
+%token <text> del
+%token <text> add
+%token <text> id
+%token <text> bf
+%token <text> ff
+%token <text> wf
+%token <text> fast
+%token <text> full
+%token <text> mbr
+%token <text> disk
+%token <text> igual
+%token <text> extension
+%token <text> num
+%token <text> caracter
+%token <text> cadena
+%token <text> identificador
+%token <text> ruta
 
-%token<TEXT> psize;
-%token<TEXT> pmkdisk;
-%token<TEXT> ppath;
-%token<TEXT> punto;
-%token<TEXT> bracketabre;
-%token<TEXT> bracketcierra;
-%token<TEXT> corcheteabre;
-%token<TEXT> corchetecierra;
-%token<TEXT> puntocoma;
-%token<TEXT> potencia;
-%token<TEXT> coma;
-%token<TEXT> parentesisabre;
-%token<TEXT> parentesiscierra;
+%token <text> mkfs
+%token <text> login
+%token <text> logout
+%token <text> mkgrp
+%token <text> rmgrp
+%token <text> mkusr
+%token <text> rmusr
+%token <text> Rchmod
+%token <text> mkfile
+%token <text> cat
+%token <text> rem
+%token <text> edit
+%token <text> ren
+%token <text> Rmkdir
+%token <text> cp
+%token <text> mv
+%token <text> find
+%token <text> Rchown
+%token <text> chgrp
+%token <text> pausa
+%token <text> recovery
+%token <text> loss
+%token <text> fs
+%token <text> fs2
+%token <text> fs3
+%token <text> usr
+%token <text> pwd
+%token <text> grp
+%token <text> ugo
+%token <text> r
+%token <text> p
+%token <text> cont
+%token <text> file
+%token <text> dest
+%token <text> rutaRep
+%token <text> inode
+%token <text> journaling
+%token <text> block
+%token <text> bm_inode
+%token <text> bm_block
+%token <text> tree
+%token <text> sb
+%token <text> fileRep
+%token <text> ls
+%token <text> password
+%token <text> directorio
 
-%token<TEXT> llaveabre;
-%token<TEXT> llavecierra;
-%token<TEXT> mas;
-%token<TEXT> menos;
-%token<TEXT> multiplicacion;
-%token<TEXT> igual;
-%token<TEXT> dolar;
-%token<TEXT> dospuntos;
-//%token<TEXT> barra;
+/*----------Not terminals------------*/
+%type <nodito> INIT
+%type <nodito> COMANDO
+%type <nodito> MKDISK
+%type <nodito> PARAMETRO_MK
 
-%token<TEXT> entero;
-%token<TEXT> numnegativo;
-%token<TEXT> cadena;
-%token<TEXT> identificador;
-%token<TEXT> caracter;
-%token<TEXT> ruta;
-%token<TEXT> rutacualquiera;
-//%token<TEXT> pdisk;
+%type <nodito> AJUSTE
 
+%start INIT
 
-
-
-%type<mdisk> COMANDOMKDISK; // lista de instrucciones
-%type<mdisk> COMANDOSMKDISK;
-%left suma menos
-%left multi division
-%left potencia
-%start INICIO
 %%
 
-INICIO : LEXPA { }
-;
+INIT:  COMANDO { };
 
-LEXPA:  pmkdisk COMANDOSMKDISK 
+COMANDO: mkdisk MKDISK {
+
+                       }
 
 
 
-;
 
-COMANDOMKDISK:  menos ppath igual cadena{cout<<"esto es la cadena "<<$4<<endl;}
-                |menos ppath igual ruta{cout<<"esto es la cadena "<<$4<<endl;}
-                |menos psize igual entero { obmkdisk *disco=new obmkdisk(); disco->size=atoi($4);  $$=disco; $$->mostrardatos(disco);}
-                
+MKDISK: MKDISK PARAMETRO_MK {
+                            }
+        |PARAMETRO_MK {
+                     };
 
-                
-;
-COMANDOSMKDISK: COMANDOMKDISK COMANDOMKDISK COMANDOMKDISK COMANDOMKDISK 
-                |COMANDOMKDISK COMANDOMKDISK COMANDOMKDISK
-                |COMANDOMKDISK COMANDOMKDISK
-;
+PARAMETRO_MK: size igual num { }
+            |fit igual AJUSTE {
+
+                               }
+            |unit igual caracter { }
+            |path igual cadena {
+                                }
+            |path igual ruta {
+                             };
+AJUSTE: bf {}
+        | ff { }
+        | wf {  };

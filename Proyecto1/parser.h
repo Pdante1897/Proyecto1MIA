@@ -49,37 +49,82 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    psize = 258,
-    pmkdisk = 259,
-    ppath = 260,
-    punto = 261,
-    bracketabre = 262,
-    bracketcierra = 263,
-    corcheteabre = 264,
-    corchetecierra = 265,
-    puntocoma = 266,
-    potencia = 267,
-    coma = 268,
-    parentesisabre = 269,
-    parentesiscierra = 270,
-    llaveabre = 271,
-    llavecierra = 272,
-    mas = 273,
-    menos = 274,
-    multiplicacion = 275,
-    igual = 276,
-    dolar = 277,
-    dospuntos = 278,
-    entero = 279,
-    numnegativo = 280,
-    cadena = 281,
-    identificador = 282,
-    caracter = 283,
-    ruta = 284,
-    rutacualquiera = 285,
-    suma = 286,
-    multi = 287,
-    division = 288
+    mkdisk = 258,
+    rmdisk = 259,
+    fdisk = 260,
+    mount = 261,
+    unmount = 262,
+    rep = 263,
+    exec = 264,
+    size = 265,
+    unit = 266,
+    path = 267,
+    fit = 268,
+    name = 269,
+    type = 270,
+    del = 271,
+    add = 272,
+    id = 273,
+    bf = 274,
+    ff = 275,
+    wf = 276,
+    fast = 277,
+    full = 278,
+    mbr = 279,
+    disk = 280,
+    igual = 281,
+    extension = 282,
+    num = 283,
+    caracter = 284,
+    cadena = 285,
+    identificador = 286,
+    ruta = 287,
+    mkfs = 288,
+    login = 289,
+    logout = 290,
+    mkgrp = 291,
+    rmgrp = 292,
+    mkusr = 293,
+    rmusr = 294,
+    Rchmod = 295,
+    mkfile = 296,
+    cat = 297,
+    rem = 298,
+    edit = 299,
+    ren = 300,
+    Rmkdir = 301,
+    cp = 302,
+    mv = 303,
+    find = 304,
+    Rchown = 305,
+    chgrp = 306,
+    pausa = 307,
+    recovery = 308,
+    loss = 309,
+    fs = 310,
+    fs2 = 311,
+    fs3 = 312,
+    usr = 313,
+    pwd = 314,
+    grp = 315,
+    ugo = 316,
+    r = 317,
+    p = 318,
+    cont = 319,
+    file = 320,
+    dest = 321,
+    rutaRep = 322,
+    inode = 323,
+    journaling = 324,
+    block = 325,
+    bm_inode = 326,
+    bm_block = 327,
+    tree = 328,
+    sb = 329,
+    fileRep = 330,
+    ls = 331,
+    password = 332,
+    directorio = 333
   };
 #endif
 
@@ -87,16 +132,13 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 24 "parser.y"
+#line 23 "parser.y"
 
-//se especifican los tipo de valores para los no terminales y lo terminales
-//char TEXT [256];
-//QString TEXT;
-char TEXT[256];
-class obmkdisk *mdisk;
+        char text[400];
+        class Node *nodito;
+    
 
-
-#line 100 "parser.h"
+#line 142 "parser.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -104,23 +146,9 @@ typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_DECLARED 1
 #endif
 
-/* Location type.  */
-#if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
-typedef struct YYLTYPE YYLTYPE;
-struct YYLTYPE
-{
-  int first_line;
-  int first_column;
-  int last_line;
-  int last_column;
-};
-# define YYLTYPE_IS_DECLARED 1
-# define YYLTYPE_IS_TRIVIAL 1
-#endif
-
 
 extern YYSTYPE yylval;
-extern YYLTYPE yylloc;
+
 int yyparse (void);
 
 #endif /* !YY_YY_PARSER_H_INCLUDED  */

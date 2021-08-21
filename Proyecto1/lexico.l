@@ -1,68 +1,123 @@
-%option case-insensitive
-%option yylineno
-
 %{
-#include <iostream>
-#include <QString>
-#include "parser.h"
-
-#include <string>
-#include <QList>
-
+    #include <iostream>
+    #include "parser.h"
+    char coment[400];
     int yylex();
     void yyerror(const char *s);
     int linea = 0;
     int columna = 1;
     int anterior = 0;
-
-
 %}
+
+%option case-insensitive
 %option noyywrap
-%option nounput
 
-entero [0-9]+
-letra [a-zA-ZÑñáéíóúÁÉÍÓÚ]+
-
-ruta ({letra}|{entero}|["_"]|["/"])(["."]|{letra}|{entero}|["_"]|["/"]|["-"])+
-cadena [\"][^\"\n]*[\"]
-identificador {letra}({letra}|{entero}|"_")*
-caracter "\'"("\\")?({letra}|{entero})"\'"
-
+letra [a-zA-Z]
+entero ("-")?[0-9]+
+caracter ({letra}|{entero})
+id {letra}({letra}|{entero}|"_")*
+password ({letra}|{entero}|[!$@+*])+
+cadena "\""[^"\""]*"\""
+extension "."{id}
+diagonal "/"
+ruta ({diagonal}{id})*({diagonal}{id}{extension})
+directorio ({diagonal}{id})+
 
 %x COM
 
+%%
+INITIAL
+{
+    "#"         { BEGIN COM; }
+
+    "mkdisk"    { return mkdisk; }
+    "rmdisk"    { return rmdisk; }
+    "fdisk"     { return fdisk; }
+    "mount"     { return mount; }
+    "unmount"   { return unmount; }
+    "rep"       { return rep; }
+    "exec"      { return exec; }
+    "-size"     { return size; }
+    "-u"     { return unit; }
+    "-path"     { return path; }
+    "-f"      { return fit; }
+    "-name"     { return name; }
+    "-type"     { return type; }
+    "-delete"   { return del; }
+    "-add"      { return add; }
+    "-id"       { return id; }
+    "bf"        { return bf; }
+    "ff"        { return ff; }
+    "wf"        { return wf; }
+    "Fast"      { return fast; }
+    "Full"      { return full; }
+    "mbr"       { return mbr; }
+    "disk"      { return disk; }
+
+
+    "mkfs"       { return mkfs; }
+    "login"      { return login; }
+    "logout"     { return logout; }
+    "mkgrp"      { return mkgrp; }
+    "rmgrp"      { return rmgrp; }
+    "mkusr"      { return mkusr; }
+    "rmusr"      { return rmusr; }
+    "chmod"      { return Rchmod; }
+    "mkfile"     { return mkfile; }
+    "cat"        { return cat; }
+    "rem"        { return rem; }
+    "edit"       { return edit; }
+    "ren"        { return ren; }
+    "mkdir"      { return Rmkdir; }
+    "cp"         { return cp; }
+    "mv"         { return mv; }
+    "find"       { return find; }
+    "chown"      { return Rchown; }
+    "chgrp"      { return chgrp; }
+    "pause"      { return pausa; }
+    "recovery"   { return recovery; }
+    "loss"       { return loss; }
+    "-fs"        { return fs; }
+    "2fs"        { return fs2; }
+    "3fs"        { return fs3; }
+    "-usr"       { return usr; }
+    "-pwd"       { return pwd;  }
+    "-grp"       { return grp; }
+    "-ugo"       { return ugo; }
+    "-r"         { return r; }
+    "-p"         { return p; }
+    "-cont"      { return cont; }
+    "-file"      { return file; }
+    "-dest"      { return dest; }
+    "-ruta"      { return rutaRep; }
+    "inode"      { return inode; }
+    "journaling" { return journaling; }
+    "block"      { return block; }
+    "bm_inode"   { return bm_inode; }
+    "bm_block"   { return bm_block; }
+    "tree"       { return tree; }
+    "sb"         { return sb; }
+    "file"       { return fileRep; }
+    "ls"         { return ls; }
+
+
+    "="         { return igual; }
+
+    {entero}    {strcpy(yylval.text, yytext); return num;}
+    {caracter}  {strcpy(yylval.text, yytext); return caracter;}
+    {cadena}    {strcpy(yylval.text, yytext); return cadena;}
+    {id}        {strcpy(yylval.text, yytext); return identificador;}
+    {ruta}      {strcpy(yylval.text, yytext); return ruta;}
+    {extension} {strcpy(yylval.text, yytext); return extension;}
+    {password}  {strcpy(yylval.text, yytext); return password; }
+    {directorio} {strcpy(yylval.text, yytext); return directorio;}
+
+    [[:blank:]] {}
+
+    .            {std::cout <<yytext <<" Error Lexico" << std::endl;}
+}
+
+<COM>"\n"        { BEGIN INITIAL; /*strcpy(yylval.text, coment); memset(coment,0,400); return comentario;*/ };
+<COM>.           { /*strcat(coment, yytext);*/ };
 
 %%
-
-"SIZE" {columna=columna+ anterior;  anterior = strlen(yytext); strcpy(yylval.TEXT, yytext);return psize;}
-"MKDISK" {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext);return pmkdisk;}
-"PATH" {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext);return ppath;}
-
-{entero} {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext); return entero;}
-{cadena} {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext); return cadena;}
-{ruta} {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext); return ruta;}
-{identificador} {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext); return identificador;}
-{caracter} {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext); return caracter;}
-
-
-"<" {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext);return bracketabre;}
-">" {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext);return bracketcierra;}
-"[" {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext);return corcheteabre;}
-"]" {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext);return corchetecierra;}
-";" {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext);return puntocoma;}
-"^" {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext);return potencia;}
-"," {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext);return coma;}
-"(" {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext);return parentesisabre;}
-")" {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext);return parentesiscierra;}
-"{" {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext);return llaveabre;}
-"}" {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext);return llavecierra;}
-"+" {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext);return mas;}
-"-" {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext);return menos;}
-"*" {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext);return multiplicacion;}
-"=" {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext);return igual;}
-"$" {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext);return dolar;}
-":" {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext);return dospuntos;}
-"." {columna=columna+ anterior;  anterior = strlen(yytext);strcpy(yylval.TEXT, yytext);return punto;}
-
-"\n" {linea++; columna=0; anterior=0;}
-[[:blank:]] { columna++; }
