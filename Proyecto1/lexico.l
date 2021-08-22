@@ -7,6 +7,7 @@
     int linea = 0;
     int columna = 1;
     int anterior = 0;
+    NodeL *lista;
 %}
 
 %option case-insensitive

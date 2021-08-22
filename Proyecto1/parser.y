@@ -1,12 +1,12 @@
 %{
     #include "scanner.h"
-    #include "Node.h"
+    #include "Lista.h"
     #include <iostream>
 
     extern int yylineno; //linea actual donde se encuentra el parser (analisis lexico) lo maneja BISON
     extern int columna; //columna actual donde se encuentra el parser (analisis lexico) lo maneja BISON
     extern char *yytext; //lexema actual donde esta el parser (analisis lexico) lo maneja BISON
-    extern Node *raiz; // Raiz del arbol
+    extern NodeL *lista; // Raiz del arbol
 
     int yyerror(const char* mens){
         std::cout<<mens<<std::endl;
@@ -22,7 +22,7 @@
 %union
     {
         char text[400];
-        class Node *nodito;
+        class NodeL *nodo;
     }
 
 /*--------------Terminals-------------*/
@@ -105,40 +105,34 @@
 %token <text> directorio
 
 /*----------Not terminals------------*/
-%type <nodito> INIT
-%type <nodito> COMANDO
-%type <nodito> MKDISK
-%type <nodito> PARAMETRO_MK
-
-%type <nodito> AJUSTE
+%type <nodo> INIT
+%type <nodo> COMANDO
+%type <nodo> MKDISK
+%type <nodo> PARAMETRO_MK
+%type <nodo> AJUSTE
 
 %start INIT
 
 %%
 
-INIT:  COMANDO { };
+INIT:  COMANDO {lista = new NodeL("",""); lista=$$; };
 
-COMANDO: mkdisk MKDISK {
-
-                       }
+COMANDO: mkdisk MKDISK {$$ = new NodeL("MKDISK",""); $$->add(*$2);}
 
 
 
 
-MKDISK: MKDISK PARAMETRO_MK {
-                            }
-        |PARAMETRO_MK {
-                     };
+MKDISK: MKDISK PARAMETRO_MK {$$ = $1; 
+                            $$->add(*$2);}
+        |PARAMETRO_MK {$$ = new NodeL("PARAMETRO",""); 
+                        $$->add(*$1); };
 
-PARAMETRO_MK: size igual num { }
-            |fit igual AJUSTE {
-
-                               }
-            |unit igual caracter { }
-            |path igual cadena {
-                                }
-            |path igual ruta {
-                             };
-AJUSTE: bf {}
-        | ff { }
-        | wf {  };
+PARAMETRO_MK: size igual num { $$= new NodeL("size",$3); }
+            |fit igual AJUSTE {$$ = new NodeL ("fit", ""); 
+                                $$->add(*$3);}
+            |unit igual caracter { $$ = new NodeL("unit",$3);}
+            |path igual cadena {$$ = new NodeL("path",$3);}
+            |path igual ruta {$$ = new NodeL("path",$3);};
+AJUSTE: bf { $$ = new NodeL("AJUSTE", "bf"); }
+        | ff { $$ = new NodeL("AJUSTE", "ff"); }
+        | wf { $$ = new NodeL("AJUSTE", "wf"); };

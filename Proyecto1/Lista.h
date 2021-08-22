@@ -1,23 +1,23 @@
-#ifndef NODE_H
-#define NODE_H
+#ifndef LISTA_H
+#define LISTA_H
 
 #include <qstring.h>
 #include <QList>
 
-class Node
+class NodeL
 {
 public:
-    Node(QString tipo, QString valor);
+    NodeL(QString tipo, QString valor);
     QString tipo;
     QString valor;
     int linea;
     int columna;
     int tipo_; // Este nos servirá para la ejecución, ya que aquí no hay swicht(QString); vamos a hacer un Swicht(int);
     QString cadenaDot;
-    QList<Node> hijos;
+    QList<NodeL> nodos;
     int getTipo();
-    void add(Node n);
+    void add(NodeL n);
 };
 
 
-#endif // NODE_H
+#endif // LISTA_H

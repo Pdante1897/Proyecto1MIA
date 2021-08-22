@@ -69,13 +69,13 @@
 #line 1 "parser.y"
 
     #include "scanner.h"
-    #include "Node.h"
+    #include "Lista.h"
     #include <iostream>
 
     extern int yylineno; //linea actual donde se encuentra el parser (analisis lexico) lo maneja BISON
     extern int columna; //columna actual donde se encuentra el parser (analisis lexico) lo maneja BISON
     extern char *yytext; //lexema actual donde esta el parser (analisis lexico) lo maneja BISON
-    extern Node *raiz; // Raiz del arbol
+    extern NodeL *lista; // Raiz del arbol
 
     int yyerror(const char* mens){
         std::cout<<mens<<std::endl;
@@ -218,7 +218,7 @@ union YYSTYPE
 #line 23 "parser.y"
 
         char text[400];
-        class Node *nodito;
+        class NodeL *nodo;
     
 
 #line 225 "parser.cpp"
@@ -604,8 +604,8 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,   119,   119,   121,   128,   130,   133,   134,   137,   138,
-     140,   142,   143,   144
+       0,   118,   118,   120,   125,   127,   130,   131,   133,   134,
+     135,   136,   137,   138
 };
 #endif
 
@@ -1418,87 +1418,82 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 119 "parser.y"
-               { }
+#line 118 "parser.y"
+               {lista = new NodeL("",""); lista=(yyval.nodo); }
 #line 1424 "parser.cpp"
     break;
 
   case 3:
-#line 121 "parser.y"
-                       {
-
-                       }
-#line 1432 "parser.cpp"
+#line 120 "parser.y"
+                       {(yyval.nodo) = new NodeL("MKDISK",""); (yyval.nodo)->add(*(yyvsp[0].nodo));}
+#line 1430 "parser.cpp"
     break;
 
   case 4:
-#line 128 "parser.y"
-                            {
-                            }
-#line 1439 "parser.cpp"
+#line 125 "parser.y"
+                            {(yyval.nodo) = (yyvsp[-1].nodo); 
+                            (yyval.nodo)->add(*(yyvsp[0].nodo));}
+#line 1437 "parser.cpp"
     break;
 
   case 5:
-#line 130 "parser.y"
-                      {
-                     }
-#line 1446 "parser.cpp"
+#line 127 "parser.y"
+                      {(yyval.nodo) = new NodeL("PARAMETRO",""); 
+                        (yyval.nodo)->add(*(yyvsp[0].nodo)); }
+#line 1444 "parser.cpp"
     break;
 
   case 6:
-#line 133 "parser.y"
-                             { }
-#line 1452 "parser.cpp"
+#line 130 "parser.y"
+                             { (yyval.nodo)= new NodeL("size",(yyvsp[0].text)); }
+#line 1450 "parser.cpp"
     break;
 
   case 7:
-#line 134 "parser.y"
-                              {
-
-                               }
-#line 1460 "parser.cpp"
+#line 131 "parser.y"
+                              {(yyval.nodo) = new NodeL ("fit", ""); 
+                                (yyval.nodo)->add(*(yyvsp[0].nodo));}
+#line 1457 "parser.cpp"
     break;
 
   case 8:
-#line 137 "parser.y"
-                                 { }
-#line 1466 "parser.cpp"
+#line 133 "parser.y"
+                                 { (yyval.nodo) = new NodeL("unit",(yyvsp[0].text));}
+#line 1463 "parser.cpp"
     break;
 
   case 9:
-#line 138 "parser.y"
-                               {
-                                }
-#line 1473 "parser.cpp"
+#line 134 "parser.y"
+                               {(yyval.nodo) = new NodeL("path",(yyvsp[0].text));}
+#line 1469 "parser.cpp"
     break;
 
   case 10:
-#line 140 "parser.y"
-                             {
-                             }
-#line 1480 "parser.cpp"
+#line 135 "parser.y"
+                             {(yyval.nodo) = new NodeL("path",(yyvsp[0].text));}
+#line 1475 "parser.cpp"
     break;
 
   case 11:
-#line 142 "parser.y"
-           {}
-#line 1486 "parser.cpp"
+#line 136 "parser.y"
+           { (yyval.nodo) = new NodeL("AJUSTE", "bf"); }
+#line 1481 "parser.cpp"
     break;
 
   case 12:
-#line 143 "parser.y"
-             { }
-#line 1492 "parser.cpp"
+#line 137 "parser.y"
+             { (yyval.nodo) = new NodeL("AJUSTE", "ff"); }
+#line 1487 "parser.cpp"
     break;
 
   case 13:
-#line 144 "parser.y"
-             {  }
-#line 1498 "parser.cpp"
+#line 138 "parser.y"
+             { (yyval.nodo) = new NodeL("AJUSTE", "wf"); }
+#line 1493 "parser.cpp"
     break;
 
 
-#line 1502 "parser.cpp"
+#line 1497 "parser.cpp"
 
       default: break;
     }

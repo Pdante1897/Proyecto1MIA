@@ -135,7 +135,7 @@ union YYSTYPE
 #line 23 "parser.y"
 
         char text[400];
-        class Node *nodito;
+        class NodeL *nodo;
     
 
 #line 142 "parser.h"

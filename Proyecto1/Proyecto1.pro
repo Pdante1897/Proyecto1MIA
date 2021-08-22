@@ -8,7 +8,7 @@ CONFIG -= app_bundle
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-        Node.cpp \
+        Lista.cpp \
         main.cpp \
         obmkdisk.cpp \
         parser.cpp \
@@ -20,7 +20,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    Node.h \
+    Lista.h \
     obmkdisk.h \
     parser.h \
-    scanner.h
+    scanner.h \
+    structs.h
