@@ -16,6 +16,7 @@ int NodeL::getTipo()
     if(this->tipo == "path")       return 5;
     if(this->tipo == "PARAMETRO")  return 6;
     if(this->tipo == "AJUSTE")     return 7;
+    if(this->tipo == "RMDISK")     return 8;
 
     return 0;
 }

@@ -110,6 +110,7 @@
 %type <nodo> MKDISK
 %type <nodo> PARAMETRO_MK
 %type <nodo> AJUSTE
+%type <nodo> RMDISK
 
 %start INIT
 
@@ -118,7 +119,7 @@
 INIT:  COMANDO {lista = new NodeL("",""); lista=$$; };
 
 COMANDO: mkdisk MKDISK {$$ = new NodeL("MKDISK",""); $$->add(*$2);}
-
+        | RMDISK { $$ = $1; }
 
 
 
@@ -136,3 +137,14 @@ PARAMETRO_MK: size igual num { $$= new NodeL("size",$3); }
 AJUSTE: bf { $$ = new NodeL("AJUSTE", "bf"); }
         | ff { $$ = new NodeL("AJUSTE", "ff"); }
         | wf { $$ = new NodeL("AJUSTE", "wf"); };
+
+RMDISK: rmdisk path igual ruta {
+                                $$ = new NodeL("RMDISK","");
+                                NodeL *n = new NodeL("path",$4);
+                                $$->add(*n);
+                               }
+         | rmdisk path igual cadena {
+                                      $$ = new NodeL("RMDISK","");
+                                      NodeL *ruta = new NodeL("path",$4);
+                                      $$->add(*ruta);
+                                    };
