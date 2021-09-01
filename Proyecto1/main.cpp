@@ -1,20 +1,20 @@
 #include <QCoreApplication>
 #include "iostream"
 #include <QString>
-#include <parser.h>  // Nuestro parser
-#include <scanner.h>  // Nuestro scanner
+#include <parser.h>
+#include <scanner.h>
 #include <QTextStream>
 #include "Lista.h"
 #include "structs.h"
+#include "Particiones.h"
 
 using namespace std;
-extern int yyparse(); //
-//static QList<discosmontados> discosenmemoria;
-extern int linea; // Linea del token
-extern int columna; // Columna de los tokens
+extern int yyparse();
+extern int linea;
+extern int columna;
 extern int yylineno;
 extern NodeL *lista;
-
+Particion particion;
 
 enum Choice{
     MKDISK = 1,
@@ -33,60 +33,41 @@ enum Choice{
 
 
 
-QString getDirectorio(QString direccion){
-    string aux = direccion.toStdString();
-    string delimiter = "/";
+void crearDisco(QString direccion){
+    string aux1 = direccion.toStdString();
+    string delimitador = "/";
     size_t pos = 0;
     string res = "";
-    while((pos = aux.find(delimiter))!=string::npos){
-        res += aux.substr(0,pos)+"/";
-        aux.erase(0,pos + delimiter.length());
+    while((pos = aux1.find(delimitador))!=string::npos){
+        res += aux1.substr(0,pos)+"/";
+        aux1.erase(0,pos + delimitador.length());
     }
-    return QString::fromStdString(res);
-}
-
-void crearDisco(QString direccion){
-    QString aux = getDirectorio(direccion);
-    string comando = "sudo mkdir -p \'"+aux.toStdString()+"\'";
+    QString aux2 = QString::fromStdString(res);
+    string comando = "sudo mkdir -p \'"+aux2.toStdString()+"\'";
     system(comando.c_str());
-    string comando2 = "sudo chmod -R 777 \'"+aux.toStdString()+"\'";
+    string comando2 = "sudo chmod -R 777 \'"+aux2.toStdString()+"\'";
     system(comando2.c_str());
     string arch = direccion.toStdString();
-    FILE *fp = fopen(arch.c_str(),"wb");
-    if((fp = fopen(arch.c_str(),"wb")))
-        fclose(fp);
+    FILE *filep = fopen(arch.c_str(),"wb");
+    if((filep = fopen(arch.c_str(),"wb")))
+        fclose(filep);
     else
-        cout << "Error al crear el archivo" << endl;
+        cout << "Error al crear el archivo Binario" << endl;
 }
 
-QString getFileName(QString direccion){
-    string aux = direccion.toStdString();
-    string delimiter = "/";
-    size_t pos = 0;
-    string res = "";
-    while((pos = aux.find(delimiter))!=string::npos){
-        aux.erase(0,pos + delimiter.length());
-    }
-    delimiter = ".";
-    pos = aux.find(delimiter);
-    res = aux.substr(0,pos);
-    return QString::fromStdString(res);
-}
+
 
 void verificarMkdisk(NodeL *nodo)
 {
-    //las flags son para verificar si se repite el parametro ingresado
     bool flagSize = false;
     bool flagPath = false;
-    bool flagFit = false;
-    bool flagUnit = false;
-    bool flag = false;//Si se repite un valor se activa esta bandera
-    /*Variables para obtener los valores de cada nodo*/
+    bool flagF = false;
+    bool flagU = false;
+    bool flag = false;
     int valSize = 0;
     char valFit = 0;
     char valUnit = 0;
     QString valPath = "";
-
     for(int i = 0; i < nodo->nodos.count(); i++)
     {
         NodeL n = nodo->nodos.at(i);
@@ -96,7 +77,7 @@ void verificarMkdisk(NodeL *nodo)
             if(flagSize){
                 cout << "ERROR: Ya fue definido el parametro SIZE" << endl;
                 flag = true;
-                break; //ERROR
+                break;
             }
             flagSize = true;
             valSize = n.valor.toInt();
@@ -109,12 +90,12 @@ void verificarMkdisk(NodeL *nodo)
             break;
         case F:
         {
-            if(flagFit){
+            if(flagF){
                 cout << "ERROR: Ya fue definido el parametro F" << endl;
                 flag = true;
-                break; //ERROR
+                break;
             }
-            flagFit = true;
+            flagF = true;
             valFit = n.nodos.at(0).valor.toStdString()[0];
             if(valFit == 'b'){
                 valFit = 'B';
@@ -127,12 +108,12 @@ void verificarMkdisk(NodeL *nodo)
             break;
         case U:
         {
-            if(flagUnit){
+            if(flagU){
                 cout << "ERROR: Ya fue definido el parametro U" << endl;
                 flag = true;
-                break;// ERROR;
+                break;
             }
-            flagUnit = true;
+            flagU = true;
             string temp = n.valor.toStdString();
             valUnit = temp[0];
             if(valUnit == 'k'|| valUnit == 'K'){
@@ -154,26 +135,22 @@ void verificarMkdisk(NodeL *nodo)
                 break;
             }
             flagPath = true;
-            valPath = n.valor;//Quitarle comillas si tiene
+            valPath = n.valor;
             valPath = valPath.replace("\"","");
         }
             break;
         }
 
     }
-
-    if(!flag){//Flag para ver si hay parametros repetidos
-        if(flagPath){//Parametro path obligatorio
-            if(flagSize){//Parametro size obligatorio
+    if(!flag){
+        if(flagPath){
+            if(flagSize){
                 MBR mbr;
                 int total_size = 1024;
-                //Archivo principal
                 crearDisco(valPath);
-                //Archivo raid
                 mbr.mbr_date_created = time(nullptr);
                 mbr.mbr_disk_signature = static_cast<int>(time(nullptr));
-
-                if(flagUnit){//Si hay parametro unit
+                if(flagU){
                     if(valUnit == 'm'){
                         mbr.mbr_size = valSize*1048576;
                         total_size = valSize * 1024;
@@ -185,28 +162,24 @@ void verificarMkdisk(NodeL *nodo)
                     mbr.mbr_size = valSize*1048576;
                     total_size = valSize * 1024;
                 }
-
-                if(flagFit)//Si hay parametro fit
+                if(flagF)
                     mbr.mbr_disk_fit = valFit;
                 else
                     mbr.mbr_disk_fit = 'F';
-
-                //Se inicializan las particiones en el MBR
                 for(int p = 0; p < 4; p++){
-                    mbr.mbr_partition[p].part_status = '0';
-                    mbr.mbr_partition[p].part_type = '0';
-                    mbr.mbr_partition[p].part_fit = '0';
-                    mbr.mbr_partition[p].part_size = 0;
-                    mbr.mbr_partition[p].part_start = -1;
-                    strcpy(mbr.mbr_partition[p].part_name,"");
+                    mbr.mbr_partitions[p].part_status = '0';
+                    mbr.mbr_partitions[p].part_type = '0';
+                    mbr.mbr_partitions[p].part_fit = '0';
+                    mbr.mbr_partitions[p].part_size = 0;
+                    mbr.mbr_partitions[p].part_start = -1;
+                    strcpy(mbr.mbr_partitions[p].part_name,"");
                 }
-                //Comando para genera un archivo de cierto tamano
-                string comando = "dd if=/dev/zero of=\""+valPath.toStdString()+"\" bs=1024 count="+to_string(total_size);
-                system(comando.c_str());
-                FILE *fp = fopen(valPath.toStdString().c_str(),"rb+");
-                fseek(fp,0,SEEK_SET);
-                fwrite(&mbr,sizeof(MBR),1,fp);
-                fclose(fp);
+                string comand = "dd if=/dev/zero of=\""+valPath.toStdString()+"\" bs=1024 count="+to_string(total_size);
+                system(comand.c_str());
+                FILE *filep = fopen(valPath.toStdString().c_str(),"rb+");
+                fseek(filep,0,SEEK_SET);
+                fwrite(&mbr,sizeof(MBR),1,filep);
+                fclose(filep);
                 cout << "Disco creado con exito" << endl;
             }else{
                 cout << "ERROR No ha sido definido el parametro SIZE " << endl;
@@ -223,8 +196,8 @@ void verificarRMdisk(NodeL *lista)
 {
     QString valPath = lista->nodos.at(0).valor;
     valPath = valPath.replace("\"","");
-    FILE *fp;
-    if((fp=fopen(valPath.toStdString().c_str(),"r"))){
+    FILE *filep;
+    if((filep=fopen(valPath.toStdString().c_str(),"r"))){
         string opcion = "";
         cout << ">> ¿Esta seguro que desea eliminar el disco? Y/N : ";
         getline(cin,opcion);
@@ -237,7 +210,7 @@ void verificarRMdisk(NodeL *lista)
         }else{
             cout << "Opcion incorrecta" << endl;
         }
-        fclose(fp);
+        fclose(filep);
     }else{
         cout << "No existe el disco que desea eliminar" << endl;
     }
@@ -245,7 +218,6 @@ void verificarRMdisk(NodeL *lista)
 
 void verificarFDISK(NodeL *lista)
 {
-    /*Banderas para verificar cuando venga un parametro y si se repite*/
     bool flagSize = false;
     bool flagUnit = false;
     bool flagPath = false;
@@ -255,12 +227,11 @@ void verificarFDISK(NodeL *lista)
     bool flagName = false;
     bool flagAdd = false;
     bool flag = false;
-    /*Variables para obtener los valores de cada nodo*/
     int valSize = 0;
     int valAdd = 0;
-    char valUnit = 0;
+    char valU = 0;
     char valType = 0;
-    char valFit = 0;
+    char valF = 0;
     QString valPath = "";
     QString valName = "";
     QString valDelete = "";
@@ -273,47 +244,23 @@ void verificarFDISK(NodeL *lista)
         case SIZE:
         {
             if(flagSize){
-                cout << "<< ERROR: Parametro -size ya definido" << endl;
+                cout << "<< ERROR: Parametro SIZE ya fue definido" << endl;
                 flag = true;
                 break;
             }
             flagSize = true;
             valSize = n.valor.toInt();
             if(!(valSize > 0)){
-                cout << "<< ERROR: parametro -size menor a cero" << endl;
+                cout << "<< ERROR: Parametro SIZE debe ser mayor a cero" << endl;
                 flag = true;
                 break;
             }
-        }
-            break;
-        case U:
-        {
-            if(flagUnit){
-                cout << "<< ERROR: Parametro -unit ya definido" << endl;
-                flag = true;
-                break;
-            }
-            flagUnit = true;
-            string temp = n.valor.toStdString();
-            valUnit = temp[0];
-            if(valUnit == 'B' || valUnit == 'b'){
-                valUnit = 'b';
-            }else if(valUnit == 'K' || valUnit == 'k'){
-                valUnit = 'k';
-            }else if(valUnit == 'M' || valUnit == 'm'){
-                valUnit = 'm';
-            }else{
-                cout << "<< ERROR: Valor del parametro unit no reconocido" << endl;
-                flag = true;
-                break;
-            }
-
         }
             break;
         case PATH:
         {
             if(flagPath){
-                cout << "<< ERROR: Parametro -path ya definido" << endl;
+                cout << "<< ERROR: El parametro PATH ya fue definido" << endl;
                 flag = true;
                 break;
             }
@@ -322,10 +269,53 @@ void verificarFDISK(NodeL *lista)
             valPath = valPath.replace("\"","");
         }
             break;
+        case F:
+        {
+            if(flagFit)
+            {
+                cout << "<< ERROR:El parametro FIT ya fue definido" << endl;
+                flag = true;
+            }
+            flagFit = true;
+            valF = n.nodos.at(0).valor.toStdString()[0];
+            if(valF == 'b'){
+                valF = 'B';
+            }else if(valF == 'f'){
+                valF = 'F';
+            }else if(valF == 'w'){
+                valF = 'W';
+            }
+        }
+            break;
+        case U:
+        {
+            if(flagUnit){
+                cout << "<< ERROR: Parametro U ya fue definido" << endl;
+                flag = true;
+                break;
+            }
+            flagUnit = true;
+            string temp = n.valor.toStdString();
+            valU = temp[0];
+            if(valU == 'B' || valU == 'b'){
+                valU = 'b';
+            }else if(valU == 'K' || valU == 'k'){
+                valU = 'k';
+            }else if(valU == 'M' || valU == 'm'){
+                valU = 'm';
+            }else{
+                flag = true;
+                cout << "<< ERROR: El valor del parametro U no reconocido" << endl;
+                break;
+            }
+
+        }
+            break;
+
         case TYPE:
         {
             if(flagType){
-                cout << "<< ERROR: Parametro -type ya definido" << endl;
+                cout << "<< ERROR:El Parametro TYPE ya fue definido" << endl;
                 flag = true;
                 break;
             }
@@ -339,35 +329,17 @@ void verificarFDISK(NodeL *lista)
             }else if(valType == 'L' || valType == 'l'){
                 valType = 'L';
             }else{
-                cout << "<< ERROR: Valor del parametro -type no reconocido" << endl;
+                cout << "<< ERROR: El valor del parametro TYPE no fue reconocido" << endl;
                 flag = true;
                 break;
             }
         }
             break;
-        case F:
-        {
-            if(flagFit)
-            {
-                cout << "<< ERROR: Parametro -fit ya definido" << endl;
-                flag = true;
-                //ERROR
-            }
-            flagFit = true;
-            valFit = n.nodos.at(0).valor.toStdString()[0];
-            if(valFit == 'b'){
-                valFit = 'B';
-            }else if(valFit == 'f'){
-                valFit = 'F';
-            }else if(valFit == 'w'){
-                valFit = 'W';
-            }
-        }
-            break;
+
         case DELETE:
         {
             if(flagDelete){
-                cout << "<< ERROR: Parametro -delete ya definido" << endl;
+                cout << "<< ERROR: El Parametro DELETE ya fue definido" << endl;
                 flag = true;
                 break;
             }
@@ -378,7 +350,7 @@ void verificarFDISK(NodeL *lista)
         case NAME:
         {
             if(flagName){
-                cout << "<< ERROR: Parametro -name ya definido" << endl;
+                cout << "<< ERROR: El Parametro NAME ya fue definido" << endl;
                 flag = true;
                 break;
             }
@@ -390,7 +362,7 @@ void verificarFDISK(NodeL *lista)
         case ADD:
         {
             if(flagAdd){
-                cout << "<< ERROR: Parametro -add ya definido" << endl;
+                cout << "<< ERROR: El Parametro ADD ya fue definido" << endl;
                 flag = true;
                 break;
             }
@@ -398,6 +370,59 @@ void verificarFDISK(NodeL *lista)
             valAdd = n.valor.toInt();
         }
             break;
+        }
+    }
+
+    if(!flag){//Flag para saber si entraron parametros repetidos
+        if(flagPath){
+            if(flagName){
+                if(flagSize){
+                    if(flagDelete || flagAdd){
+                        cout << "<< ERROR: Parametros DELETE o ADD repetidos" << endl;
+                    }else{
+                        if(flagType){
+                            if(valType == 'P'){
+                                particion.crearPartPri(valPath, valName, valSize, valF, valU);
+                            }else if(valType == 'E'){
+                                particion.crearPartExt(valPath, valName, valSize, valF, valU);
+                            }else if(valType == 'L'){
+                                particion.crearPartL(valPath, valName, valSize, valF, valU);
+                            }
+                        }else{
+                            particion.crearPartPri(valPath, valName, valSize, valF, valU);
+                        }
+                    }
+                }else if(flagAdd){
+                    if(flagSize || flagDelete){
+                        cout << "<< ERROR: Parametros SIZE o DELETE repetidos" << endl;
+                    }else{
+                        //Verificar que la particion no este montada (falta comando montar)
+                        bool montado = false;
+                        if(flagUnit){
+                            if(!montado){
+                                particion.comandADD(valPath, valName, valAdd, valU);
+                            }else
+                                cout << "ERROR: Debe desmontar la particion para poder agregarle o quitarle" << endl;
+                        }else{
+                            cout << "<< ERROR parametro U no definido "<< endl;
+                        }
+                    }
+                }else if(flagDelete){
+                    if(flagSize || flagAdd || flagFit || flagType){
+                        cout << "<< ERROR: Parametros repetidos" << endl;
+                    }else{
+                        bool mount = false;
+                        if(!mount){
+                            particion.eliminarPart(valPath, valName, valDelete);
+                        }else
+                            cout << "ERROR: Debe desmontar la particion para poder eliminarla" << endl;
+                    }
+                }
+            }else {
+                cout << "<< ERROR: El parametro NAME no fue definido" << endl;
+            }
+        }else{
+            cout << "<< ERROR: El parametro PATH no fue definido" << endl;
         }
     }
 
@@ -413,19 +438,19 @@ void reconocerComando(NodeL *lista)
     case MKDISK:
     {
         NodeL nodo = lista->nodos.at(0);
-        verificarMkdisk(&nodo);//mandamos a verificar la lista de parametros de mkdisk, si son correctos creara el disco.
+        verificarMkdisk(&nodo);
     }
       break;
     case RMDISK:
     {
         NodeL nodo= lista->nodos.at(0);
-        verificarRMdisk(lista);//mandamos a verificar la lista de parametros de RMdisk, si son correctos borrara el disco
+        verificarRMdisk(lista);
         break;
     }
     case FDISK:
     {
         NodeL nodo= lista->nodos.at(0);
-        verificarFdisk(&nodo);//mandamos a verificar la lista de parametros de fdisk, si son correctos formateara el disco
+        verificarFDISK(&nodo);
         break;
     }
     default: printf("ERROR no se reconoce el comando");
@@ -445,7 +470,7 @@ int main()
     QTextStream qtin(stdin);
     QString line;
 
-    while(line!="exit"){    //esto me sirve para seguir leyendo siempre los comandos sin salirme
+    while(line!="exit"){
         cout << l;
         line = qtin.readLine();
         if(line!="exit"){

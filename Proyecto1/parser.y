@@ -22,7 +22,7 @@
 %union
     {
         char text[400];
-        class NodeL *nodo;
+        class NodeL *NodeL;
     }
 
 /*--------------Terminals-------------*/
@@ -105,30 +105,35 @@
 %token <text> directorio
 
 /*----------Not terminals------------*/
-%type <nodo> INIT
-%type <nodo> COMANDO
-%type <nodo> MKDISK
-%type <nodo> PARAMETRO_MK
-%type <nodo> AJUSTE
-%type <nodo> RMDISK
+%type <NodeL> INICIO
+%type <NodeL> COMANDO
+%type <NodeL> MKDISK
+%type <NodeL> PARAMETROMK
+%type <NodeL> AJUSTE
+%type <NodeL> RMDISK
+%type <NodeL> FDISK
+%type <NodeL> PARAMETROF
 
-%start INIT
+
+%start INICIO
 
 %%
 
-INIT:  COMANDO {lista = new NodeL("",""); lista=$$; };
+INICIO:  COMANDO {lista = new NodeL("",""); lista=$$; };
 
 COMANDO: mkdisk MKDISK {$$ = new NodeL("MKDISK",""); $$->add(*$2);}
         | RMDISK { $$ = $1; }
+        | fdisk FDISK { $$ = new NodeL("FDISK","");
+                        $$->add(*$2);
+                        };
 
 
-
-MKDISK: MKDISK PARAMETRO_MK {$$ = $1; 
+MKDISK: MKDISK PARAMETROMK {$$ = $1; 
                             $$->add(*$2);}
-        |PARAMETRO_MK {$$ = new NodeL("PARAMETRO",""); 
+        |PARAMETROMK {$$ = new NodeL("PARAMETRO",""); 
                         $$->add(*$1); };
 
-PARAMETRO_MK: size igual num { $$= new NodeL("size",$3); }
+PARAMETROMK: size igual num { $$= new NodeL("size",$3); }
             |fit igual AJUSTE {$$ = new NodeL ("fit", ""); 
                                 $$->add(*$3);}
             |unit igual caracter { $$ = new NodeL("unit",$3);}
@@ -137,7 +142,6 @@ PARAMETRO_MK: size igual num { $$= new NodeL("size",$3); }
 AJUSTE: bf { $$ = new NodeL("AJUSTE", "bf"); }
         | ff { $$ = new NodeL("AJUSTE", "ff"); }
         | wf { $$ = new NodeL("AJUSTE", "wf"); };
-
 RMDISK: rmdisk path igual ruta {
                                 $$ = new NodeL("RMDISK","");
                                 NodeL *n = new NodeL("path",$4);
@@ -148,3 +152,18 @@ RMDISK: rmdisk path igual ruta {
                                       NodeL *ruta = new NodeL("path",$4);
                                       $$->add(*ruta);
                                     };
+FDISK: FDISK PARAMETROF {
+                            $$ = $1;
+                            $$->add(*$2);
+                          }
+        | PARAMETROF {
+                        $$ = new NodeL("PARAMETRO","");
+                        $$->add(*$1);
+                      };
+PARAMETROF: PARAMETROMK { $$ = $1; }
+              | type igual caracter { $$ = new NodeL("TYPE",$3); }
+              | del igual fast { $$ = new NodeL("DELETE", "fast"); }
+              | del igual full { $$ = new NodeL("DELETE", "full"); }
+              | name igual identificador { $$ = new NodeL("NAME", $3); }
+              | name igual cadena { $$ = new NodeL("NAME", $3); }
+              | add igual num { $$ = new NodeL("ADD", $3); };

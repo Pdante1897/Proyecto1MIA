@@ -9,6 +9,7 @@ NodeL::NodeL(QString t, QString v){
 
 int NodeL::getTipo()
 {
+
     if(this->tipo == "MKDISK")     return 1;
     if(this->tipo == "size")       return 2;
     if(this->tipo == "fit")        return 3;
@@ -17,7 +18,11 @@ int NodeL::getTipo()
     if(this->tipo == "PARAMETRO")  return 6;
     if(this->tipo == "AJUSTE")     return 7;
     if(this->tipo == "RMDISK")     return 8;
-
+    if(this->tipo == "FDISK")     return 9;
+    if(this->tipo == "TYPE")     return 10;
+    if(this->tipo == "DELETE")     return 11;
+    if(this->tipo == "NAME")     return 12;
+    if(this->tipo == "ADD")     return 13;
     return 0;
 }
 
