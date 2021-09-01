@@ -83,7 +83,6 @@ void Particion::crearPartPri(QString dir, QString name, int size, char f, char u
             }
             cout << "Espacio necesario:  " << sizeBytes << " Bytes" << endl;
             cout << "Espacio disponible: " << (mbr.mbr_size - espUtilizado) << " Bytes" << endl;
-            cout << "Holamundo"<<endl;
             if((mbr.mbr_size - espUtilizado) >= sizeBytes){
                 if(!existePart(dir,name)){
                     if(mbr.mbr_disk_fit == 'B'){
@@ -242,10 +241,6 @@ void Particion::crearPartExt(QString dir, QString name, int size, char f, char u
                             ebr.part_size = 0;
                             ebr.part_next = -1;
                             strcpy(ebr.part_name, "");
-                            fwrite(&ebr,sizeof (EBR),1,filep);
-                            for(int i = 0; i < (size_bytes - (int)sizeof(EBR)); i++){
-                                fwrite(&buff,1,1,filep);
-                            }
                         }else if(mbr.mbr_disk_fit == 'B'){
                             int bestIndex = numPart;
                             for(int i = 0; i < 4; i++){
@@ -277,10 +272,6 @@ void Particion::crearPartExt(QString dir, QString name, int size, char f, char u
                             ebr.part_size = 0;
                             ebr.part_next = -1;
                             strcpy(ebr.part_name, "");
-                            fwrite(&ebr,sizeof (EBR),1,filep);
-                            for(int i = 0; i < (size_bytes - (int)sizeof(EBR)); i++){
-                                fwrite(&buff,1,1,filep);
-                            }
                         }else if(mbr.mbr_disk_fit == 'W'){
                             int  worstIndex= numPart;
                             for(int i = 0; i < 4; i++){
@@ -312,10 +303,6 @@ void Particion::crearPartExt(QString dir, QString name, int size, char f, char u
                             ebr.part_size = 0;
                             ebr.part_next = -1;
                             strcpy(ebr.part_name, "");
-                            fwrite(&ebr,sizeof (EBR),1,filep);
-                            for(int i = 0; i < (size_bytes - (int)sizeof(EBR)); i++){
-                                fwrite(&buff,1,1,filep);
-                            }
                         }
                         fwrite(&ebr,sizeof (EBR),1,filep);
                         for(int i = 0; i < (size_bytes - (int)sizeof(EBR)); i++){
