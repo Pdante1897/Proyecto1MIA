@@ -125,7 +125,11 @@ COMANDO: mkdisk MKDISK {$$ = new NodeL("MKDISK",""); $$->add(*$2);}
         | RMDISK { $$ = $1; }
         | fdisk FDISK { $$ = new NodeL("FDISK","");
                         $$->add(*$2);
-                        };
+                        }
+        | mount MOUNT {
+                         $$ = new Nodo("MOUNT", "");
+                         $$->add(*$2);
+                       };
 
 
 MKDISK: MKDISK PARAMETROMK {$$ = $1; 
@@ -167,3 +171,17 @@ PARAMETROF: PARAMETROMK { $$ = $1; }
               | name igual identificador { $$ = new NodeL("NAME", $3); }
               | name igual cadena { $$ = new NodeL("NAME", $3); }
               | add igual num { $$ = new NodeL("ADD", $3); };
+
+MOUNT: MOUNT PARAMETRO_M {
+                           $$ = $1;
+                           $$->add(*$2);
+                         }
+       | PARAMETRO_M {
+                        $$ = new NodeL("PARAMETRO","");
+                        $$->add(*$1);
+                      };
+
+PARAMETRO_M: path igual cadena { $$ = new NodeL("PATH",$3); }
+             | path igual ruta { $$ = new NodeL("PATH", $3); }
+             | name igual identificador { $$ = new NodeL("NAME", $3); }
+             | name igual cadena { $$ = new NodeL("NAME",$3); };

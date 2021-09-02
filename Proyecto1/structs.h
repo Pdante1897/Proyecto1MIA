@@ -78,4 +78,21 @@ typedef struct{
     int b_pointers[16];
 }BloqueDeApuntadores;
 
+
+typedef struct {
+    char id[4];
+    //std::string id;
+    int numero;
+    char nombre[16];
+    int estado;
+} particionDisk;
+
+typedef struct  {
+    char letra;
+    char ruta[100];
+    int estado;
+    particionDisk particiones[99];
+}Disk;
+
+
 #endif // STRUCTS_H

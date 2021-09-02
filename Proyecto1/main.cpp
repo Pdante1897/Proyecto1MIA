@@ -27,7 +27,9 @@ enum Choice{
     TYPE = 10,
     DELETE = 11,
     NAME = 12,
-    ADD = 13
+    ADD = 13,
+    MOUNT = 14,
+    UNMOUNT = 15
 };
 
 
@@ -429,7 +431,44 @@ void verificarFDISK(NodeL *lista)
 
 }
 
-
+void verificarMount(NodeL *Lista){
+    QString path = "";
+    QString name = "";
+    bool flagPath = false;
+    bool flagName = false;
+    bool flag = false;
+    for(int i = 0; i < Lista->nodos.count(); i++)
+    {
+        NodeL nodito = Lista->nodos.at(i);
+        switch(nodito.tipo_)
+        {
+        case PATH:
+        {
+            if(flagPath){
+                flag = true;
+                cout << "ERROR: Parametro -path ya definido" << endl;
+                break;
+            }
+            flagPath = true;
+            path = nodito.valor;
+            path = path.replace("\"","");
+        }
+            break;
+        case NAME:
+        {
+            if(flagName){
+                flag = true;
+                cout << "ERROR: Parametro -name ya definido" << endl;
+                break;
+            }
+            flagName = true;
+            name = nodito.valor;
+            name = name.replace("\"","");
+        }
+            break;
+        }
+    }
+}
 
 void reconocerComando(NodeL *lista)
 {
