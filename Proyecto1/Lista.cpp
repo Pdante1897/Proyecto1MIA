@@ -23,6 +23,10 @@ int NodeL::getTipo()
     if(this->tipo == "DELETE")     return 11;
     if(this->tipo == "NAME")     return 12;
     if(this->tipo == "ADD")     return 13;
+    if(this->tipo == "MOUNT")     return 14;
+    if(this->tipo == "UMOUNT")     return 15;
+
+
     return 0;
 }
 

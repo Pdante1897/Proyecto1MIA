@@ -17,6 +17,8 @@ letra [a-zA-Z]
 entero ("-")?[0-9]+
 caracter ({letra}|{entero})
 id {letra}({letra}|{entero}|"_")*
+idmount {entero}{letra}
+
 password ({letra}|{entero}|[!$@+*])+
 cadena "\""[^"\""]*"\""
 extension "."{id}
@@ -35,7 +37,7 @@ INITIAL
     "rmdisk"    { return rmdisk; }
     "fdisk"     { return fdisk; }
     "mount"     { return mount; }
-    "unmount"   { return unmount; }
+    "umount"   { return umount; }
     "rep"       { return rep; }
     "exec"      { return exec; }
     "-size"     { return size; }
@@ -108,6 +110,7 @@ INITIAL
     {caracter}  {strcpy(yylval.text, yytext); return caracter;}
     {cadena}    {strcpy(yylval.text, yytext); return cadena;}
     {id}        {strcpy(yylval.text, yytext); return identificador;}
+    {idmount}        {strcpy(yylval.text, yytext); return idmount;}
     {ruta}      {strcpy(yylval.text, yytext); return ruta;}
     {extension} {strcpy(yylval.text, yytext); return extension;}
     {password}  {strcpy(yylval.text, yytext); return password; }

@@ -7,6 +7,7 @@
 #include "Lista.h"
 #include "structs.h"
 #include "Particiones.h"
+#include "Clases.h"
 
 using namespace std;
 extern int yyparse();
@@ -15,6 +16,7 @@ extern int columna;
 extern int yylineno;
 extern NodeL *lista;
 Particion particion;
+ListSMount *listaM= new ListSMount();
 
 enum Choice{
     MKDISK = 1,
@@ -29,7 +31,7 @@ enum Choice{
     NAME = 12,
     ADD = 13,
     MOUNT = 14,
-    UNMOUNT = 15
+    UMOUNT = 15
 };
 
 
@@ -229,14 +231,14 @@ void verificarFDISK(NodeL *lista)
     bool flagName = false;
     bool flagAdd = false;
     bool flag = false;
-    int valSize = 0;
+    int Size = 0;
     int valAdd = 0;
     char valU = 0;
     char valType = 0;
     char valF = 0;
-    QString valPath = "";
-    QString valName = "";
-    QString valDelete = "";
+    QString path = "";
+    QString name = "";
+    QString del = "";
 
     for(int i = 0; i < lista->nodos.count(); i++)
     {
@@ -251,8 +253,8 @@ void verificarFDISK(NodeL *lista)
                 break;
             }
             flagSize = true;
-            valSize = n.valor.toInt();
-            if(!(valSize > 0)){
+            Size = n.valor.toInt();
+            if(!(Size > 0)){
                 cout << "<< ERROR: Parametro SIZE debe ser mayor a cero" << endl;
                 flag = true;
                 break;
@@ -267,8 +269,8 @@ void verificarFDISK(NodeL *lista)
                 break;
             }
             flagPath = true;
-            valPath = n.valor;
-            valPath = valPath.replace("\"","");
+            path = n.valor;
+            path = path.replace("\"","");
         }
             break;
         case F:
@@ -346,7 +348,7 @@ void verificarFDISK(NodeL *lista)
                 break;
             }
             flagDelete = true;
-            valDelete = n.valor;
+            del = n.valor;
         }
             break;
         case NAME:
@@ -357,8 +359,8 @@ void verificarFDISK(NodeL *lista)
                 break;
             }
             flagName = true;
-            valName = n.valor;
-            valName = valName.replace("\"", "");
+            name = n.valor;
+            name = name.replace("\"", "");
         }
             break;
         case ADD:
@@ -384,14 +386,14 @@ void verificarFDISK(NodeL *lista)
                     }else{
                         if(flagType){
                             if(valType == 'P'){
-                                particion.crearPartPri(valPath, valName, valSize, valF, valU);
+                                particion.crearPartPri(path, name, Size, valF, valU);
                             }else if(valType == 'E'){
-                                particion.crearPartExt(valPath, valName, valSize, valF, valU);
+                                particion.crearPartExt(path, name, Size, valF, valU);
                             }else if(valType == 'L'){
-                                particion.crearPartL(valPath, valName, valSize, valF, valU);
+                                particion.crearPartL(path, name, Size, valF, valU);
                             }
                         }else{
-                            particion.crearPartPri(valPath, valName, valSize, valF, valU);
+                            particion.crearPartPri(path, name, Size, valF, valU);
                         }
                     }
                 }else if(flagAdd){
@@ -399,10 +401,10 @@ void verificarFDISK(NodeL *lista)
                         cout << "<< ERROR: Parametros SIZE o DELETE repetidos" << endl;
                     }else{
                         //Verificar que la particion no este montada (falta comando montar)
-                        bool montado = false;
+                        bool montado = listaM->buscNodo(path,name);;
                         if(flagUnit){
                             if(!montado){
-                                particion.comandADD(valPath, valName, valAdd, valU);
+                                particion.comandADD(path, name, valAdd, valU);
                             }else
                                 cout << "ERROR: Debe desmontar la particion para poder agregarle o quitarle" << endl;
                         }else{
@@ -415,7 +417,7 @@ void verificarFDISK(NodeL *lista)
                     }else{
                         bool mount = false;
                         if(!mount){
-                            particion.eliminarPart(valPath, valName, valDelete);
+                            particion.eliminarPart(path, name, del);
                         }else
                             cout << "ERROR: Debe desmontar la particion para poder eliminarla" << endl;
                     }
@@ -468,6 +470,85 @@ void verificarMount(NodeL *Lista){
             break;
         }
     }
+    if(!flag){
+        if(flagPath){//Parametro obligatorio
+            if(flagName){//Parametro obligtaorio
+                int indexP = particion.buscarPartP_E(path,name);
+                if(indexP != -1){
+                    FILE *filep;
+                    if((filep = fopen(path.toStdString().c_str(),"rb+"))){
+                        MBR mbr;
+                        fseek(filep, 0, SEEK_SET);
+                        fread(&mbr, sizeof(MBR),1,filep);
+                        mbr.mbr_partitions[indexP].part_status = '2';
+                        fseek(filep,0,SEEK_SET);
+                        fwrite(&mbr,sizeof(MBR),1,filep);
+                        fclose(filep);
+                        int letra = listaM->bLetra(path,name);
+                        if(letra == -1){
+                            cout << "ERROR la particion ya esta montada" << endl;
+                        }else{
+                            int num = listaM->bNum(path,name);
+                            char auxL = static_cast<char>(letra);
+                            string id = "45";
+                            id += auxL + to_string(num);
+                            NodoM *noditoM= new NodoM(path,name,auxL,num);
+                            listaM->insert(noditoM);
+                            cout << "Particion montada con exito" << endl;
+                            listaM->mostList();
+                        }
+                    }else{
+                        cout << "ERROR no se encuentra el disco" << endl;
+                    }
+                }else{//Posiblemente logica
+                    int indexP = particion.buscarPart_L(path,name);
+                    if(indexP != -1){
+                        FILE *filep;
+                        if((filep = fopen(path.toStdString().c_str(), "rb+"))){
+                            EBR extendedBoot;
+                            fseek(filep, indexP, SEEK_SET);
+                            fread(&extendedBoot, sizeof(EBR),1,filep);
+                            extendedBoot.part_status = '2';
+                            fseek(filep,indexP,SEEK_SET);
+                            fwrite(&extendedBoot,sizeof(EBR),1, filep);
+                            fclose(filep);
+
+                            int letra = listaM->bLetra(path,name);
+                            if(letra == -1){
+                                cout << "ERROR la particion ya esta montada" << endl;
+                            }else{
+                                int num = listaM->bNum(path,name);
+                                char auxLetra = static_cast<char>(letra);
+                                string id = "45";
+                                id += auxLetra + to_string(num);
+                                NodoM *noditoM = new NodoM(path, name, auxLetra, num);
+                                listaM->insert(noditoM);
+                                cout << "Particion montada con exito" << endl;
+                                listaM->mostList();
+                            }
+                        }else{
+                            cout << "ERROR no se encuentra el disco" << endl;
+                        }
+                    }else{
+                        cout << "ERROR no se encuentra la particion a montar" << endl;
+                    }
+                }
+            }else{
+                cout << "ERROR parametro -name no definido" << endl;
+            }
+        }else{
+            cout << "ERROR parametro -path no definido" << endl;
+        }
+    }
+}
+
+void recorrerUNMOUNT(NodeL *lista){
+    QString id = lista->nodos.at(0).valor;
+    int eliminado = listaM->deleteNodo(id);
+    if(eliminado == 1)
+        cout << "La unidad fue desmontada con exito" << endl;
+    else
+        cout << "ERROR: no se encuentra montada la unidad" << endl;
 }
 
 void reconocerComando(NodeL *lista)
@@ -492,6 +573,17 @@ void reconocerComando(NodeL *lista)
         verificarFDISK(&nodo);
         break;
     }
+    case MOUNT:
+    {
+        NodeL nodo= lista->nodos.at(0);
+        verificarMount(&nodo);
+        break;
+    }
+    case UMOUNT:
+    {
+        recorrerUNMOUNT(lista);
+    }
+        break;
     default: printf("ERROR no se reconoce el comando");
     }
 

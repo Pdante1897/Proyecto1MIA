@@ -1,5 +1,15 @@
 #include "Clases.h"
 
+NodoM::NodoM(QString dir, QString name, char let, int num)
+{
+    this->dir = dir;
+    this->name = name;
+    this->let = let;
+    this->num = num;
+    this->sig = nullptr;
+}
+
+
 ListSMount::ListSMount(){
     inicio = nullptr;
 }
@@ -46,12 +56,13 @@ int ListSMount::bLetra(QString dir, QString name){
     int ret = 'a';
     while(aux!=NULL){
         if((dir == aux->dir) && (name == aux->name)){
-            return -1;
+            ret++;
         }else{
             if(dir == aux->dir){
-                return aux->let;
-            }else if(ret <= aux->let){
                 ret++;
+            }else if(ret <= aux->let){
+                return aux->let;
+
             }
         }
         aux = aux->sig;
@@ -59,7 +70,7 @@ int ListSMount::bLetra(QString dir, QString name){
     return ret;
 }
 
-int ListSMount::bNum(QString dir){
+int ListSMount::bNum(QString dir, QString name){
     int ret = 1;
     NodoM *aux = inicio;
     while(aux!=nullptr){
@@ -96,15 +107,15 @@ NodoM* ListSMount::getNodo(QString id){
 }
 
 void ListSMount::mostList(){
-    cout << "---------------------------------------" << endl;
-    cout << "|          Particiones montadas       |" << endl;
-    cout << "---------------------------------------"<< endl;
-    cout << "|      Nombre    |    ID              |" << endl;
-    cout << "---------------------------------------" << endl;
+    cout << "---------------------------------------------------" << endl;
+    cout << "|                Particiones montadas              |" << endl;
+    cout << "---------------------------------------------------"<< endl;
+    cout << "| Path        | Nombre          | ID               |" << endl;
+    cout << "---------------------------------------------------" << endl;
     NodoM *aux = inicio;
     while(aux!=nullptr){
-        cout << "|     "<< aux->name.toStdString() << "          " << "45"<<aux->num<<aux->let << endl;
-        cout << "---------------------------------------" << endl;
+        cout << "| "<< aux->dir.toStdString()<<"        " << aux->name.toStdString() << "          " << "45"<<aux->num<<aux->let << endl;
+    cout << "---------------------------------------------------" << endl;
         aux = aux->sig;
     }
 }

@@ -25,7 +25,7 @@ public:
     NodoM *inicio;
     ListSMount();
     int bLetra(QString dir, QString name);
-    int bNum(QString dir);
+    int bNum(QString dir,   QString name);
     void mostList();
     void insert(NodoM*);
     int deleteNodo(QString);

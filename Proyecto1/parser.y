@@ -30,7 +30,7 @@
 %token <text> rmdisk
 %token <text> fdisk
 %token <text> mount
-%token <text> unmount
+%token <text> umount
 %token <text> rep
 %token <text> exec
 %token <text> size
@@ -42,6 +42,7 @@
 %token <text> del
 %token <text> add
 %token <text> id
+%token <text> idmount
 %token <text> bf
 %token <text> ff
 %token <text> wf
@@ -113,6 +114,10 @@
 %type <NodeL> RMDISK
 %type <NodeL> FDISK
 %type <NodeL> PARAMETROF
+%type <NodeL> MOUNT
+%type <NodeL> PARAMETRO_M
+%type <NodeL> UMOUNT
+
 
 
 %start INICIO
@@ -127,9 +132,10 @@ COMANDO: mkdisk MKDISK {$$ = new NodeL("MKDISK",""); $$->add(*$2);}
                         $$->add(*$2);
                         }
         | mount MOUNT {
-                         $$ = new Nodo("MOUNT", "");
+                         $$ = new NodeL("MOUNT", "");
                          $$->add(*$2);
-                       };
+                       }
+        | UMOUNT { $$ = $1; };
 
 
 MKDISK: MKDISK PARAMETROMK {$$ = $1; 
@@ -181,7 +187,13 @@ MOUNT: MOUNT PARAMETRO_M {
                         $$->add(*$1);
                       };
 
-PARAMETRO_M: path igual cadena { $$ = new NodeL("PATH",$3); }
-             | path igual ruta { $$ = new NodeL("PATH", $3); }
+PARAMETRO_M: path igual cadena { $$ = new NodeL("path",$3); }
+             | path igual ruta { $$ = new NodeL("path", $3); }
              | name igual identificador { $$ = new NodeL("NAME", $3); }
              | name igual cadena { $$ = new NodeL("NAME",$3); };
+
+UMOUNT: umount id igual idmount {
+                                          $$ = new NodeL("UMOUNT", "");
+                                          NodeL *n = new NodeL("id",$4);
+                                          $$->add(*n);
+                                        };
