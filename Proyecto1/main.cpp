@@ -8,6 +8,7 @@
 #include "structs.h"
 #include "Particiones.h"
 #include "Clases.h"
+#include <math.h>
 
 using namespace std;
 extern int yyparse();
@@ -206,7 +207,7 @@ void verificarRMdisk(NodeL *lista)
     FILE *filep;
     if((filep=fopen(valPath.toStdString().c_str(),"r"))){
         string opcion = "";
-        cout << ">> ¿Esta seguro que desea eliminar el disco? Y/N : ";
+        cout << "-- ¿Esta seguro que desea eliminar el disco? Y/N : ";
         getline(cin,opcion);
         if(opcion.compare("Y") == 0 || opcion.compare("y") == 0){
             string comando = "rm \""+valPath.toStdString()+"\"";
@@ -554,6 +555,21 @@ void recorrerUNMOUNT(NodeL *lista){
         cout << "ERROR: no se encuentra montada la unidad" << endl;
 }
 
+
+void Ext2(int inicio, int tamanio, QString dir){
+        double n = (tamanio - static_cast<int>(sizeof(SuperBloque)))/(4 + static_cast<int>(sizeof(InodoTable)) +3*static_cast<int>(sizeof(BloqueArchivo)));
+        int num_estructuras = static_cast<int>(floor(n));//Numero de inodos
+        int num_bloques = 3*num_estructuras;
+
+        SuperBloque super;
+        InodoTable inodo;
+        BloqueCarpeta bloque;
+}
+
+void Ext3(){
+
+}
+
 void verificarMKFS(NodeL *lista){
     bool flagId = false;
     bool flagType = false;
@@ -605,8 +621,37 @@ void verificarMKFS(NodeL *lista){
         }
     }
 
+    if(!flag){
+        if(flagId){
+            NodoM *aux = listaM->getNodo(id);
+            if(aux!=nullptr){
+                int index = particion.buscarPartP_E(aux->dir,aux->name);
+                if(index != -1){
+                    MBR mbr;
+                    FILE *filep = fopen(aux->dir.toStdString().c_str(),"rb+");
+                    fread(&mbr,sizeof(MBR),1,filep);
+                    int inicio = mbr.mbr_partitions[index].part_start;
+                    int tamanio = mbr.mbr_partitions[index].part_size;
+                    QString dir;
+                    if(fs == 3){
+                        Ext3();
+                    }
+                    else{
+                        Ext2(inicio, tamanio, dir);
+                    }
+                    fclose(filep);
+                }else{
+                    index = particion.buscarPart_L(aux->dir,aux->name);
+                }
+            }else
+                cout << "ERROR: No se ha encontrado ninguna particion montada con el id ingresado" << endl;
+        }else
+            cout << "ERROR: El parametro ID no fue definido" << endl;
+    }
+
 
 }
+
 
 
 void reconocerComando(NodeL *lista)
