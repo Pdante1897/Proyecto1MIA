@@ -32,6 +32,7 @@ public:
     bool buscNodo(QString, QString);
     QString getDir(QString);
     NodoM* getNodo(QString);
+    bool existeDir(QString);
 };
 
 #endif // CLASES_H

@@ -38,7 +38,6 @@ INITIAL
     "fdisk"     { return fdisk; }
     "mount"     { return mount; }
     "umount"   { return umount; }
-    "rep"       { return rep; }
     "exec"      { return exec; }
     "-size"     { return size; }
     "-u"     { return unit; }
@@ -67,41 +66,12 @@ INITIAL
     "rmusr"      { return rmusr; }
     "chmod"      { return Rchmod; }
     "mkfile"     { return mkfile; }
-    "cat"        { return cat; }
-    "rem"        { return rem; }
-    "edit"       { return edit; }
-    "ren"        { return ren; }
-    "mkdir"      { return Rmkdir; }
-    "cp"         { return cp; }
-    "mv"         { return mv; }
-    "find"       { return find; }
-    "chown"      { return Rchown; }
-    "chgrp"      { return chgrp; }
-    "pause"      { return pausa; }
-    "recovery"   { return recovery; }
-    "loss"       { return loss; }
     "-fs"        { return fs; }
     "2fs"        { return fs2; }
     "3fs"        { return fs3; }
-    "-usr"       { return usr; }
-    "-pwd"       { return pwd;  }
-    "-grp"       { return grp; }
-    "-ugo"       { return ugo; }
     "-r"         { return r; }
     "-p"         { return p; }
-    "-cont"      { return cont; }
-    "-file"      { return file; }
-    "-dest"      { return dest; }
-    "-ruta"      { return rutaRep; }
-    "inode"      { return inode; }
-    "journaling" { return journaling; }
-    "block"      { return block; }
-    "bm_inode"   { return bm_inode; }
-    "bm_block"   { return bm_block; }
-    "tree"       { return tree; }
-    "sb"         { return sb; }
-    "file"       { return fileRep; }
-    "ls"         { return ls; }
+    
 
 
     "="         { return igual; }
@@ -113,7 +83,6 @@ INITIAL
     {idmount}        {strcpy(yylval.text, yytext); return idmount;}
     {ruta}      {strcpy(yylval.text, yytext); return ruta;}
     {extension} {strcpy(yylval.text, yytext); return extension;}
-    {password}  {strcpy(yylval.text, yytext); return password; }
     {directorio} {strcpy(yylval.text, yytext); return directorio;}
 
     [[:blank:]] {}

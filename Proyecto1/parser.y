@@ -89,20 +89,6 @@
 %token <text> ugo
 %token <text> r
 %token <text> p
-%token <text> cont
-%token <text> file
-%token <text> dest
-%token <text> rutaRep
-%token <text> inode
-%token <text> journaling
-%token <text> block
-%token <text> bm_inode
-%token <text> bm_block
-%token <text> tree
-%token <text> sb
-%token <text> fileRep
-%token <text> ls
-%token <text> password
 %token <text> directorio
 
 /*----------Not terminals------------*/
@@ -117,7 +103,8 @@
 %type <NodeL> MOUNT
 %type <NodeL> PARAMETRO_M
 %type <NodeL> UMOUNT
-
+%type <NodeL> MKFS
+%type <NodeL> PARAM_MKFS
 
 
 %start INICIO
@@ -135,7 +122,12 @@ COMANDO: mkdisk MKDISK {$$ = new NodeL("MKDISK",""); $$->add(*$2);}
                          $$ = new NodeL("MOUNT", "");
                          $$->add(*$2);
                        }
-        | UMOUNT { $$ = $1; };
+        | UMOUNT { $$ = $1; }
+        | mkfs MKFS {
+                        $$ = new NodeL("MKFS","");
+                        $$->add(*$2);
+                     };
+
 
 
 MKDISK: MKDISK PARAMETROMK {$$ = $1; 
@@ -197,3 +189,17 @@ UMOUNT: umount id igual idmount {
                                           NodeL *n = new NodeL("id",$4);
                                           $$->add(*n);
                                         };
+MKFS: MKFS PARAM_MKFS {
+                        $$ = $1;
+                        $$->add(*$2);
+                      }
+      | PARAM_MKFS {
+                      $$ = new NodeL("PARAMETRO", "");
+                      $$->add(*$1);
+                   };
+
+PARAM_MKFS: id igual idmount{ $$ = new NodeL("id",$3); }
+            | type igual fast { $$ = new NodeL("type", "fast"); }
+            | type igual full { $$ = new NodeL("type", "full"); }
+            | fs igual fs2 { $$ = new NodeL("fs", "2fs"); }
+            | fs igual fs3 { $$ = new NodeL("fs", "3fs"); };

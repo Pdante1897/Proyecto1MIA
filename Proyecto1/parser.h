@@ -111,21 +111,7 @@ extern int yydebug;
     ugo = 317,
     r = 318,
     p = 319,
-    cont = 320,
-    file = 321,
-    dest = 322,
-    rutaRep = 323,
-    inode = 324,
-    journaling = 325,
-    block = 326,
-    bm_inode = 327,
-    bm_block = 328,
-    tree = 329,
-    sb = 330,
-    fileRep = 331,
-    ls = 332,
-    password = 333,
-    directorio = 334
+    directorio = 320
   };
 #endif
 
@@ -139,7 +125,7 @@ union YYSTYPE
         class NodeL *NodeL;
     
 
-#line 143 "parser.h"
+#line 129 "parser.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

@@ -470,7 +470,7 @@ extern int yylex (void);
 #undef yyTABLES_NAME
 #endif
 
-#line 127 "lexico.l"
+#line 96 "lexico.l"
 
 
 #line 477 "scanner.h"

@@ -51,30 +51,31 @@ int ListSMount::deleteNodo(QString ID){
     return 0;
 }
 
-int ListSMount::bLetra(QString dir, QString name){
+int ListSMount::bNum(QString dir, QString name){
     NodoM *aux = inicio;
-    int ret = 'a';
+    int ret = 1;
+    bool flag= false;
     while(aux!=NULL){
         if((dir == aux->dir) && (name == aux->name)){
-            ret++;
+            return -1;
         }else{
             if(dir == aux->dir){
+                return aux->num;
+            }else if(ret <= aux->num){
                 ret++;
-            }else if(ret <= aux->let){
-                return aux->let;
-
             }
         }
         aux = aux->sig;
+        flag = false;
     }
     return ret;
 }
 
-int ListSMount::bNum(QString dir, QString name){
-    int ret = 1;
+int ListSMount::bLetra(QString dir, QString name){
+    int ret = 'a';
     NodoM *aux = inicio;
     while(aux!=nullptr){
-        if((dir == aux->dir) && (ret == aux->num)){
+        if((dir == aux->dir) && (ret == aux->let)){
             ret++;
         }
         aux = aux->sig;
@@ -118,4 +119,15 @@ void ListSMount::mostList(){
     cout << "---------------------------------------------------" << endl;
         aux = aux->sig;
     }
+}
+
+bool ListSMount::existeDir(QString dir){
+    NodoM *aux = inicio;
+    while(aux!=nullptr){
+        if((aux->dir == dir)){
+            return true;
+        }
+        aux = aux->sig;
+    }
+    return false;
 }

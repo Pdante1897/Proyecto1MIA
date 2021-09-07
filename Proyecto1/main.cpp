@@ -31,7 +31,10 @@ enum Choice{
     NAME = 12,
     ADD = 13,
     MOUNT = 14,
-    UMOUNT = 15
+    UMOUNT = 15,
+    ID = 16,
+    FS = 17,
+    MKFS = 18
 };
 
 
@@ -485,10 +488,10 @@ void verificarMount(NodeL *Lista){
                         fwrite(&mbr,sizeof(MBR),1,filep);
                         fclose(filep);
                         int letra = listaM->bLetra(path,name);
-                        if(letra == -1){
+                        int num = listaM->bNum(path,name);
+                        if(num == -1){
                             cout << "ERROR la particion ya esta montada" << endl;
                         }else{
-                            int num = listaM->bNum(path,name);
                             char auxL = static_cast<char>(letra);
                             string id = "45";
                             id += auxL + to_string(num);
@@ -550,6 +553,61 @@ void recorrerUNMOUNT(NodeL *lista){
     else
         cout << "ERROR: no se encuentra montada la unidad" << endl;
 }
+
+void verificarMKFS(NodeL *lista){
+    bool flagId = false;
+    bool flagType = false;
+    bool flagFs = false;
+    bool flag = false;
+    QString id = "";
+    QString type = "";
+    int fs = 2;//si no viene valor por defecto usa el ext2
+    for(int i = 0; i < lista->nodos.count(); i++)
+    {
+        NodeL nodito = lista->nodos.at(i);
+        switch (nodito.tipo_) {
+        case ID:
+        {
+            if(flagId){
+                cout << "ERROR: El parametro ID ya fue definido" << endl;
+                flag = true;
+                break;
+            }
+            flagId = true;
+            id = nodito.valor;
+        }
+            break;
+        case TYPE:
+        {
+            if(flagType){
+                cout << "ERROR: El parametro TYPE ya fue definido" << endl;
+                flag = true;
+                break;
+            }
+            flagType = true;
+            type = nodito.valor;
+        }
+            break;
+        case FS:
+        {
+            if(flagFs){
+                cout << "ERROR: El parametro FS ya fue definido " << endl;
+                flag = true;
+                break;
+            }
+            flagFs = true;
+            if(nodito.valor == "3fs")
+                fs = 3;
+            else
+                fs = 2;
+        }
+            break;
+        }
+    }
+
+
+}
+
 
 void reconocerComando(NodeL *lista)
 {
