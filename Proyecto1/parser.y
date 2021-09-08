@@ -189,6 +189,8 @@ UMOUNT: umount id igual idmount {
                                           NodeL *n = new NodeL("id",$4);
                                           $$->add(*n);
                                         };
+
+
 MKFS: MKFS PARAM_MKFS {
                         $$ = $1;
                         $$->add(*$2);
@@ -198,7 +200,7 @@ MKFS: MKFS PARAM_MKFS {
                       $$->add(*$1);
                    };
 
-PARAM_MKFS: id igual idmount{ $$ = new NodeL("id",$3); }
+PARAM_MKFS: id igual idmount{ $$ = new NodeL("ident",$3); }
             | type igual fast { $$ = new NodeL("type", "fast"); }
             | type igual full { $$ = new NodeL("type", "full"); }
             | fs igual fs2 { $$ = new NodeL("fs", "2fs"); }

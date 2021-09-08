@@ -25,8 +25,9 @@ int NodeL::getTipo()
     if(this->tipo == "ADD")     return 13;
     if(this->tipo == "MOUNT")     return 14;
     if(this->tipo == "UMOUNT")     return 15;
-    if(this->tipo == "id")         return 16;
-    if(this->tipo == "MKFS")        return 17;
+    if(this->tipo == "ident")         return 16;
+    if(this->tipo == "FS")        return 17;
+    if(this->tipo == "MKFS")        return 18;
 
 
     return 0;

@@ -519,7 +519,7 @@ void verificarMount(NodeL *Lista){
 
                             int letra = listaM->bLetra(path,name);
                             if(letra == -1){
-                                cout << "ERROR la particion ya esta montada" << endl;
+                                cout << "ERROR: la particion ya esta montada" << endl;
                             }else{
                                 int num = listaM->bNum(path,name);
                                 char auxLetra = static_cast<char>(letra);
@@ -527,7 +527,7 @@ void verificarMount(NodeL *Lista){
                                 id += auxLetra + to_string(num);
                                 NodoM *noditoM = new NodoM(path, name, auxLetra, num);
                                 listaM->insert(noditoM);
-                                cout << "Particion montada con exito" << endl;
+                                cout << "La Particion fue montada con exito" << endl;
                                 listaM->mostList();
                             }
                         }else{
@@ -546,7 +546,7 @@ void verificarMount(NodeL *Lista){
     }
 }
 
-void recorrerUNMOUNT(NodeL *lista){
+void verificarUNMOUNT(NodeL *lista){
     QString id = lista->nodos.at(0).valor;
     int eliminado = listaM->deleteNodo(id);
     if(eliminado == 1)
@@ -557,17 +557,215 @@ void recorrerUNMOUNT(NodeL *lista){
 
 
 void Ext2(int inicio, int tamanio, QString dir){
-        double n = (tamanio - static_cast<int>(sizeof(SuperBloque)))/(4 + static_cast<int>(sizeof(InodoTable)) +3*static_cast<int>(sizeof(BloqueArchivo)));
+        double n = (tamanio - static_cast<int>(sizeof(SuperBloque)))/(4 + static_cast<int>(sizeof(InodoTable)) +3*static_cast<int>(sizeof(BloqueDeArchivos)));
         int num_estructuras = static_cast<int>(floor(n));//Numero de inodos
         int num_bloques = 3*num_estructuras;
+        SuperBloque superB;
+        FILE *filep = fopen(dir.toStdString().c_str(),"rb+");
 
-        SuperBloque super;
-        InodoTable inodo;
-        BloqueCarpeta bloque;
+        superB.s_filesystem_type = 2;
+        superB.s_inodes_count = num_estructuras;
+        superB.s_blocks_count = num_bloques;
+        superB.s_free_blocks_count = num_bloques -2;
+        superB.s_free_inodes_count = num_estructuras -2;
+        superB.s_mtime = time(nullptr);
+        superB.s_umtime = 0;
+        superB.s_mnt_count = 0;
+        superB.s_magic = 0xEF53;
+        superB.s_inode_size = sizeof(InodoTable);
+        superB.s_block_size = sizeof(BloqueDeArchivos);
+        superB.s_first_ino = 2;
+        superB.s_first_blo = 2;
+        superB.s_bm_inode_start = inicio + static_cast<int>(sizeof(SuperBloque));
+        superB.s_bm_block_start = inicio + static_cast<int>(sizeof(SuperBloque)) + num_estructuras;
+        superB.s_inode_start = inicio + static_cast<int>(sizeof (SuperBloque)) + num_estructuras + num_bloques;
+        superB.s_block_start = inicio + static_cast<int>(sizeof(SuperBloque)) + num_estructuras + num_bloques + (static_cast<int>(sizeof(InodoTable))*num_estructuras);
+
+        InodoTable inodoT;
+        BloqueCarpeta bloqueC;
+        char buffer = '0';
+        char buffer2 = '1';
+        char buffer3 = '2';
+
+        fseek(filep,inicio,SEEK_SET);//superbloque
+        fwrite(&superB,sizeof(SuperBloque),1,filep);
+
+        for(int i = 0; i < num_estructuras; i++){//bitmap de inodos
+            fseek(filep,superB.s_bm_inode_start + i,SEEK_SET);
+            fwrite(&buffer,sizeof(char),1,filep);
+        }
+        fseek(filep,superB.s_bm_inode_start,SEEK_SET);//bit para / y users.txt en BM
+        fwrite(&buffer2,sizeof(char),1,filep);
+        fwrite(&buffer2,sizeof(char),1,filep);
+        for(int i = 0; i < num_bloques; i++){//bitmap de bloques
+            fseek(filep,superB.s_bm_block_start + i,SEEK_SET);
+            fwrite(&buffer,sizeof(char),1,filep);
+        }
+        fseek(filep,superB.s_bm_block_start,SEEK_SET);//bit para / y users.txt en BM
+        fwrite(&buffer2,sizeof(char),1,filep);
+        fwrite(&buffer3,sizeof(char),1,filep);
+        inodoT.i_uid = 1;//inodo para carpeta root
+        inodoT.i_gid = 1;
+        inodoT.i_size = 0;
+        inodoT.i_atime = time(nullptr);
+        inodoT.i_ctime = time(nullptr);
+        inodoT.i_mtime = time(nullptr);
+        inodoT.i_block[0] = 0;
+        for(int i = 1; i < 15;i++){
+            inodoT.i_block[i] = -1;
+        }
+        inodoT.i_type = '0';
+        inodoT.i_perm = 664;
+        fseek(filep,superB.s_inode_start,SEEK_SET);
+        fwrite(&inodoT,sizeof(InodoTable),1,filep);
+
+        //-bloque para carpeta root
+        strcpy(bloqueC.b_content[0].b_name,".");//Actual (el mismo)
+        bloqueC.b_content[0].b_inodo=0;
+
+        strcpy(bloqueC.b_content[1].b_name,"..");//Padre
+        bloqueC.b_content[1].b_inodo=0;
+
+        strcpy(bloqueC.b_content[2].b_name,"users.txt");
+        bloqueC.b_content[2].b_inodo=1;
+
+        strcpy(bloqueC.b_content[3].b_name,".");
+        bloqueC.b_content[3].b_inodo=-1;
+        fseek(filep,superB.s_block_start,SEEK_SET);
+        fwrite(&bloqueC,sizeof(BloqueCarpeta),1,filep);
+
+        inodoT.i_uid = 1;//inodo para users.txt
+        inodoT.i_gid = 1;
+        inodoT.i_size = 27;
+        inodoT.i_atime = time(nullptr);
+        inodoT.i_ctime = time(nullptr);
+        inodoT.i_mtime = time(nullptr);
+        inodoT.i_block[0] = 1;
+        for(int i = 1; i < 15;i++){
+            inodoT.i_block[i] = -1;
+        }
+        inodoT.i_type = '1';
+        inodoT.i_perm = 755;
+        fseek(filep,superB.s_inode_start + static_cast<int>(sizeof(InodoTable)),SEEK_SET);
+        fwrite(&inodoT,sizeof(InodoTable),1,filep);
+
+        BloqueDeArchivos archivo;//Bloque para users.txt
+        memset(archivo.b_content,0,sizeof(archivo.b_content));
+        strcpy(archivo.b_content,"1,G,root\n1,U,root,root,123\n");
+        fseek(filep,superB.s_block_start + static_cast<int>(sizeof(BloqueCarpeta)),SEEK_SET);
+        fwrite(&archivo,sizeof(BloqueDeArchivos),1,filep);
+        cout << "Formato Ext2" << endl;
+        cout << "..." << endl;
+        cout << "Disco formateado con exito!" << endl;
+        fclose(filep);
 }
 
-void Ext3(){
+void Ext3(int inicio, int tamanio, QString direccion){
+    double n = (tamanio - static_cast<int>(sizeof(SuperBloque)))/(4 + static_cast<int>(sizeof(InodoTable)) +3*static_cast<int>(sizeof(BloqueDeArchivos)));
+    int num_estructuras = static_cast<int>(floor(n));//Bitmap de indos
+    int num_bloques = 3*num_estructuras;//Bitmap de bloques
+    int super_size = static_cast<int>(sizeof(SuperBloque));
+    int journal_size = static_cast<int>(sizeof(Journal))*num_estructuras;
+    SuperBloque superB;
+    InodoTable inodoT;
+    BloqueCarpeta bloqueC;
+    superB.s_filesystem_type = 3;
+    superB.s_inodes_count = num_estructuras;
+    superB.s_blocks_count = num_bloques;
+    superB.s_free_blocks_count = num_bloques - 2;
+    superB.s_free_inodes_count = num_estructuras - 2;
+    superB.s_mtime = time(nullptr);
+    superB.s_umtime = 0;
+    superB.s_mnt_count = 0;
+    superB.s_magic = 0xEF53;
+    superB.s_inode_size = sizeof(InodoTable);
+    superB.s_block_size = sizeof(BloqueDeArchivos);
+    superB.s_first_ino = 2;
+    superB.s_first_blo = 2;
+    superB.s_bm_inode_start = inicio + super_size + journal_size;
+    superB.s_bm_block_start = inicio + super_size + journal_size + num_estructuras;
+    superB.s_inode_start = inicio + super_size + journal_size + num_estructuras + num_bloques;
+    superB.s_block_start = inicio + super_size + journal_size + num_estructuras + num_bloques + static_cast<int>(sizeof(InodoTable))*num_estructuras;
+    char buffer1 = '0';
+    char buffer2 = '1';
+    char buffer3 = '2';
+    FILE *filep = fopen(direccion.toStdString().c_str(),"rb+");
 
+    fseek(filep,inicio,SEEK_SET);//superbloque
+    fwrite(&superB,sizeof(SuperBloque),1,filep);
+    for(int i = 0; i < num_estructuras; i++){//BITMAP DE INODOS
+        fseek(filep,superB.s_bm_inode_start + i,SEEK_SET);
+        fwrite(&buffer1,sizeof(char),1,filep);
+    }
+
+    fseek(filep,superB.s_bm_inode_start,SEEK_SET);//bit para / y users.txt en BM
+    fwrite(&buffer2,sizeof(char),1,filep);
+    fwrite(&buffer2,sizeof(char),1,filep);
+
+    for(int i = 0; i < num_bloques; i++){//BITMAP DE BLOQUES
+        fseek(filep,superB.s_bm_block_start + i,SEEK_SET);
+        fwrite(&buffer1,sizeof(char),1,filep);
+    }
+
+    fseek(filep,superB.s_bm_block_start,SEEK_SET);//bit para / y users.txt en BM
+    fwrite(&buffer2,sizeof(char),1,filep);
+    fwrite(&buffer3,sizeof(char),1,filep);
+
+    inodoT.i_uid = 1;//inodo para carpeta root
+    inodoT.i_gid = 1;
+    inodoT.i_size = 0;
+    inodoT.i_atime = time(nullptr);
+    inodoT.i_ctime = time(nullptr);
+    inodoT.i_mtime = time(nullptr);
+    inodoT.i_block[0] = 0;
+    for(int i = 1; i < 15;i++){
+        inodoT.i_block[i] = -1;
+    }
+    inodoT.i_type = '0';
+    inodoT.i_perm = 664;
+    fseek(filep,superB.s_inode_start,SEEK_SET);
+    fwrite(&inodoT,sizeof(InodoTable),1,filep);
+    //-Bloque para carpeta root
+    strcpy(bloqueC.b_content[0].b_name,".");//Actual
+    bloqueC.b_content[0].b_inodo=0;
+
+    strcpy(bloqueC.b_content[1].b_name,"..");//Padre
+    bloqueC.b_content[1].b_inodo=0;
+
+    strcpy(bloqueC.b_content[2].b_name,"users.txt");
+    bloqueC.b_content[2].b_inodo=1;
+
+    strcpy(bloqueC.b_content[3].b_name,".");
+    bloqueC.b_content[3].b_inodo=-1;
+    fseek(filep,superB.s_block_start,SEEK_SET);
+    fwrite(&bloqueC,sizeof(BloqueCarpeta),1,filep);
+
+
+    inodoT.i_uid = 1;//inodo para users.txt
+    inodoT.i_gid = 1;
+    inodoT.i_size = 27;
+    inodoT.i_atime = time(nullptr);
+    inodoT.i_ctime = time(nullptr);
+    inodoT.i_mtime = time(nullptr);
+    inodoT.i_block[0] = 1;
+    for(int i = 1; i < 15;i++){
+        inodoT.i_block[i] = -1;
+    }
+    inodoT.i_type = '1';
+    inodoT.i_perm = 755;
+    fseek(filep,superB.s_inode_start + static_cast<int>(sizeof(InodoTable)),SEEK_SET);
+    fwrite(&inodoT,sizeof(InodoTable),1,filep);
+
+    BloqueDeArchivos archivo;    //Bloque para users.txt
+    memset(archivo.b_content,0,sizeof(archivo.b_content));
+    strcpy(archivo.b_content,"1,G,root\n1,U,root,root,123\n");
+    fseek(filep,superB.s_block_start + static_cast<int>(sizeof(BloqueCarpeta)),SEEK_SET);
+    fwrite(&archivo,sizeof(BloqueDeArchivos),1,filep);
+
+    cout << "Formato Ext3" << endl;
+    cout << "..." << endl;
+    cout << "Disco formateado con exito!" << endl;
+    fclose(filep);
 }
 
 void verificarMKFS(NodeL *lista){
@@ -577,7 +775,7 @@ void verificarMKFS(NodeL *lista){
     bool flag = false;
     QString id = "";
     QString type = "";
-    int fs = 2;//si no viene valor por defecto usa el ext2
+    int fs = 2;//si no viene un valor por defecto usa el ext2
     for(int i = 0; i < lista->nodos.count(); i++)
     {
         NodeL nodito = lista->nodos.at(i);
@@ -634,10 +832,15 @@ void verificarMKFS(NodeL *lista){
                     int tamanio = mbr.mbr_partitions[index].part_size;
                     QString dir;
                     if(fs == 3){
-                        Ext3();
+                        Ext3(inicio, tamanio, dir);
                     }
                     else{
-                        Ext2(inicio, tamanio, dir);
+                        try {
+                            Ext2(inicio, tamanio, dir);
+
+                        }  catch (exception) {
+
+                        }
                     }
                     fclose(filep);
                 }else{
@@ -684,10 +887,15 @@ void reconocerComando(NodeL *lista)
     }
     case UMOUNT:
     {
-        recorrerUNMOUNT(lista);
+        verificarUNMOUNT(lista);
+    }
+    case MKFS:
+    {
+        NodeL nodo= lista->nodos.at(0);
+        verificarMKFS(&nodo);
     }
         break;
-    default: printf("ERROR no se reconoce el comando");
+    default: printf("ERROR no se reconoce el comando ");
     }
 
 }

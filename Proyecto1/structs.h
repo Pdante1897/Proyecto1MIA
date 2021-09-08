@@ -94,5 +94,15 @@ typedef struct  {
     particionDisk particiones[99];
 }Disk;
 
+typedef struct{
+    char journal_operation_type[10];
+    int journal_type;//Archivo/Carpeta
+    char journal_name[100];
+    char journal_content[100];
+    time_t journal_date;
+    int journal_owner;
+    int journal_permissions;
+}Journal;
+
 
 #endif // STRUCTS_H
