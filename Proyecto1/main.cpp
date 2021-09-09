@@ -8,6 +8,8 @@
 #include "structs.h"
 #include "Particiones.h"
 #include "Clases.h"
+#include "main.h"
+
 #include <math.h>
 
 using namespace std;
@@ -35,7 +37,8 @@ enum Choice{
     UMOUNT = 15,
     ID = 16,
     FS = 17,
-    MKFS = 18
+    MKFS = 18,
+    EXEC = 19
 };
 
 
@@ -452,7 +455,7 @@ void verificarMount(NodeL *Lista){
         {
             if(flagPath){
                 flag = true;
-                cout << "ERROR: Parametro -path ya definido" << endl;
+                cout << "ERROR: Parametro PATH ya definido" << endl;
                 break;
             }
             flagPath = true;
@@ -464,7 +467,7 @@ void verificarMount(NodeL *Lista){
         {
             if(flagName){
                 flag = true;
-                cout << "ERROR: Parametro -name ya definido" << endl;
+                cout << "ERROR: Parametro NAME ya definido" << endl;
                 break;
             }
             flagName = true;
@@ -502,7 +505,7 @@ void verificarMount(NodeL *Lista){
                             listaM->mostList();
                         }
                     }else{
-                        cout << "ERROR no se encuentra el disco" << endl;
+                        cout << "ERROR: No se encuentra el disco" << endl;
                     }
                 }else{//Posiblemente logica
                     int indexP = particion.buscarPart_L(path,name);
@@ -531,17 +534,17 @@ void verificarMount(NodeL *Lista){
                                 listaM->mostList();
                             }
                         }else{
-                            cout << "ERROR no se encuentra el disco" << endl;
+                            cout << "ERROR: No se encuentra el disco" << endl;
                         }
                     }else{
-                        cout << "ERROR no se encuentra la particion a montar" << endl;
+                        cout << "ERROR: No se encuentra la particion a montar" << endl;
                     }
                 }
             }else{
-                cout << "ERROR parametro -name no definido" << endl;
+                cout << "ERROR: Parametro Name no definido" << endl;
             }
         }else{
-            cout << "ERROR parametro -path no definido" << endl;
+            cout << "ERROR: Parametro PATH no definido" << endl;
         }
     }
 }
@@ -818,7 +821,6 @@ void verificarMKFS(NodeL *lista){
             break;
         }
     }
-
     if(!flag){
         if(flagId){
             NodoM *aux = listaM->getNodo(id);
@@ -832,15 +834,10 @@ void verificarMKFS(NodeL *lista){
                     int tamanio = mbr.mbr_partitions[index].part_size;
                     QString dir;
                     if(fs == 3){
-                        Ext3(inicio, tamanio, dir);
+                        Ext3(inicio, tamanio, aux->dir);
                     }
                     else{
-                        try {
-                            Ext2(inicio, tamanio, dir);
-
-                        }  catch (exception) {
-
-                        }
+                            Ext2(inicio, tamanio, aux->dir);
                     }
                     fclose(filep);
                 }else{
@@ -856,6 +853,27 @@ void verificarMKFS(NodeL *lista){
 }
 
 
+
+
+void verificarEXEC(NodeL *lista)
+{
+    QString path = lista->nodos.at(0).valor;
+    string auxPath = path.toStdString();
+    FILE *filepEx;
+    if((filepEx = fopen(auxPath.c_str(),"r"))){
+        char line[400]="";
+        memset(line,0,sizeof(line));
+        while(fgets(line,sizeof line,filepEx)){
+            if(line[0]!='\n'){
+                cout << "~"<< line;
+                leerComand(line);
+            }
+            memset(line,0,sizeof(line));
+        }
+        fclose(filepEx);
+    }else
+        cout << "ERROR: script no encontrado" << endl;
+}
 
 void reconocerComando(NodeL *lista)
 {
@@ -888,46 +906,63 @@ void reconocerComando(NodeL *lista)
     case UMOUNT:
     {
         verificarUNMOUNT(lista);
+        break;
     }
     case MKFS:
     {
         NodeL nodo= lista->nodos.at(0);
         verificarMKFS(&nodo);
+        break;
     }
+    case EXEC:
+    {
+        verificarEXEC(lista);
+        break;
+    }
+
         break;
     default: printf("ERROR no se reconoce el comando ");
     }
 
 }
 
+void leerComand(char comand[400]){
+    if(comand[0] != '#'){
+        YY_BUFFER_STATE buffer;
+        buffer = yy_scan_string(comand);
+        if(yyparse() == 0){
+            if(lista!=nullptr){
+                reconocerComando(lista);
+            }
+        }else
+            cout << "Error: Comando no reconocido" << endl;
+    }
+}
+bool exit(char exit[400]){
+    if(exit[0]=='e' && exit[1]=='x' && exit[2]=='i' && exit[3]=='t' ){
+        return true;
+    }
+    else return false;
+
+}
 
 
 int main()
 {
     string p="------------------------------SISTEMA DE ARCHIVOS-----------------------------\n"
              "By: Bryan Gerardo Paez Morales_______________________________________201700945\n";
-
-    string l="Ingrese un comando:\n";
     cout << p;
+    string l="Ingrese un comando:\n";
     QTextStream qtin(stdin);
-    QString line;
-
-    while(line!="exit"){
+    char line[400];
+    QString strline= line;
+    while(true){
         cout << l;
-        line = qtin.readLine();
-        if(line!="exit"){
-            if(line.isEmpty()==false){
-                YY_BUFFER_STATE buffer;
-                buffer = yy_scan_string(line.toUtf8().constData());;
-                if(yyparse() == 0){
-                    if(lista!=nullptr){
-                        reconocerComando(lista);
-                    }
-                }else
-                    cout << "Comando no reconocido" << endl;
-
-            }
-        }
+        cout << "~";
+        fgets(line,sizeof (line),stdin);
+        if(exit(line))break;
+        leerComand(line);
+        memset(line,0,400);
 
     }
 

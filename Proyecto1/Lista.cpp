@@ -28,6 +28,8 @@ int NodeL::getTipo()
     if(this->tipo == "ident")         return 16;
     if(this->tipo == "FS")        return 17;
     if(this->tipo == "MKFS")        return 18;
+    if(this->tipo == "EXEC")        return 19;
+
 
 
     return 0;

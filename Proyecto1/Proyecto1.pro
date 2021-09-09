@@ -25,6 +25,7 @@ HEADERS += \
     Clases.h \
     Lista.h \
     Particiones.h \
+    main.h \
     obmkdisk.h \
     parser.h \
     scanner.h \

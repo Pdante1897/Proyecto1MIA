@@ -105,6 +105,8 @@
 %type <NodeL> UMOUNT
 %type <NodeL> MKFS
 %type <NodeL> PARAM_MKFS
+%type <NodeL> EXEC
+
 
 
 %start INICIO
@@ -126,7 +128,8 @@ COMANDO: mkdisk MKDISK {$$ = new NodeL("MKDISK",""); $$->add(*$2);}
         | mkfs MKFS {
                         $$ = new NodeL("MKFS","");
                         $$->add(*$2);
-                     };
+                     }
+        | EXEC { $$ = $1; };
 
 
 
@@ -203,5 +206,16 @@ MKFS: MKFS PARAM_MKFS {
 PARAM_MKFS: id igual idmount{ $$ = new NodeL("ident",$3); }
             | type igual fast { $$ = new NodeL("type", "fast"); }
             | type igual full { $$ = new NodeL("type", "full"); }
-            | fs igual fs2 { $$ = new NodeL("fs", "2fs"); }
-            | fs igual fs3 { $$ = new NodeL("fs", "3fs"); };
+            | fs igual fs2 { $$ = new NodeL("FS", "2fs"); }
+            | fs igual fs3 { $$ = new NodeL("FS", "3fs"); };
+
+EXEC: exec path igual cadena {
+              $$ = new NodeL("EXEC","");
+              NodeL *path = new NodeL("path", $4);
+              $$->add(*path);
+              }
+        | exec path igual ruta {
+              $$ = new NodeL("EXEC","");
+              NodeL *n = new NodeL("path", $4);
+              $$->add(*n);
+              };
