@@ -9,6 +9,7 @@ CONFIG -= app_bundle
 
 SOURCES += \
         Clases.cpp \
+        Graficar.cpp \
         Lista.cpp \
         Particiones.cpp \
         main.cpp \
@@ -23,6 +24,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     Clases.h \
+    Graficar.h \
     Lista.h \
     Particiones.h \
     main.h \

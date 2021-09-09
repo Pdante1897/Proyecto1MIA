@@ -9,6 +9,7 @@
 #include "Particiones.h"
 #include "Clases.h"
 #include "main.h"
+#include "Graficar.h"
 
 #include <math.h>
 
@@ -38,7 +39,8 @@ enum Choice{
     ID = 16,
     FS = 17,
     MKFS = 18,
-    EXEC = 19
+    EXEC = 19,
+    REP = 20,
 };
 
 
@@ -875,6 +877,130 @@ void verificarEXEC(NodeL *lista)
         cout << "ERROR: script no encontrado" << endl;
 }
 
+QString getExtension(QString dir){
+    string aux = dir.toStdString();
+    string delimitador = ".";
+    size_t pos = 0;
+    while((pos = aux.find(delimitador))!=string::npos){
+        aux.erase(0,pos+delimitador.length());
+    }
+    return QString::fromStdString(aux);
+}
+
+QString getDirectorio(QString direccion){
+    string aux = direccion.toStdString();
+    string delimiter = "/";
+    size_t pos = 0;
+    string res = "";
+    while((pos = aux.find(delimiter))!=string::npos){
+        res += aux.substr(0,pos)+"/";
+        aux.erase(0,pos + delimiter.length());
+    }
+    return QString::fromStdString(res);
+}
+
+QString getFileName(QString direccion){
+    string aux = direccion.toStdString();
+    string delimiter = "/";
+    size_t pos = 0;
+    string res = "";
+    while((pos = aux.find(delimiter))!=string::npos){
+        aux.erase(0,pos + delimiter.length());
+    }
+    delimiter = ".";
+    pos = aux.find(delimiter);
+    res = aux.substr(0,pos);
+    return QString::fromStdString(res);
+}
+
+void verificarREP(NodeL *lista)
+{
+    bool flagName = false;
+    bool flagPath = false;
+    bool flagID = false;
+    bool flagRuta = false;
+    bool flag = false;
+    QString valName = "";
+    QString valPath = "";
+    QString valID = "";
+    QString valRuta = "";
+
+    for(int i = 0; i < lista->nodos.count(); i++)
+    {
+        NodeL nodito = lista->nodos.at(i);
+        switch (nodito.tipo_)
+        {
+        case NAME:
+        {
+            if(flagName){
+                cout << "ERROR: parametro NAME ya definido" << endl;
+                flag = true;
+                break;
+            }
+            flagName = true;
+            valName = nodito.valor;
+        }
+            break;
+        case PATH:
+        {
+            if(flagPath){
+                cout << "ERROR: Parametro PATH ya definido" << endl;
+                flag = true;
+                break;
+            }
+            flagPath = true;
+            valPath = nodito.valor;
+            valPath = valPath.replace("\"","");
+        }
+            break;
+        case ID:
+        {
+            if(flagID){
+                cout << "ERROR: Parametro ID ya definido" << endl;
+                flag = true;
+                break;
+            }
+            flagID = true;
+            valID = nodito.valor;
+        }
+            break;
+        }
+
+    }
+
+    if(!flag){
+        if(flagPath){
+            if(flagName){
+                if(flagID){
+                    NodoM *aux = listaM->getNodo(valID);
+                    QString ext = getExtension(valPath);
+                    if(aux !=  nullptr){
+                        QString directorio = getDirectorio(valPath);
+                        string comando = "sudo mkdir -p \'"+directorio.toStdString()+"\'";
+                        system(comando.c_str());
+                        string comando2 = "sudo chmod -R 777 \'"+directorio.toStdString()+"\'";
+                        system(comando2.c_str());
+                        Reporte r;
+                        if(valName == "mbr")
+                            r.graficarMBR(aux->dir,valPath,ext);
+                        else if(valName == "disk")
+                            r.graficarDisco(aux->dir,valPath,ext);
+
+
+                    }else
+                        cout << "ERROR: no se encuentra la particion" << endl;
+                }else
+                    cout << "ERROR: parametro ID no definido" << endl;
+            }else
+                cout << "ERROR: parametro NAME no definido" << endl;
+        }else
+            cout << "ERROR: parametro PATH no definido" << endl;
+    }
+
+
+}
+
+
 void reconocerComando(NodeL *lista)
 {
     switch (lista->tipo_)
@@ -918,6 +1044,11 @@ void reconocerComando(NodeL *lista)
     {
         verificarEXEC(lista);
         break;
+    }
+    case REP:
+    {
+        NodeL nodo = lista->nodos.at(0);
+        verificarREP(&nodo);
     }
 
         break;

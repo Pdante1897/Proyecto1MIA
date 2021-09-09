@@ -39,6 +39,8 @@ INITIAL
     "mount"     { return mount; }
     "umount"   { return umount; }
     "exec"      { return exec; }
+    "rep"      { return rep; }
+
     "-size"     { return size; }
     "-u"     { return unit; }
     "-path"     { return path; }

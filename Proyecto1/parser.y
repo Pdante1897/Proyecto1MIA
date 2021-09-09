@@ -106,7 +106,8 @@
 %type <NodeL> MKFS
 %type <NodeL> PARAM_MKFS
 %type <NodeL> EXEC
-
+%type <NodeL> REP
+%type <NodeL> PARAMETRO_REP
 
 
 %start INICIO
@@ -129,7 +130,10 @@ COMANDO: mkdisk MKDISK {$$ = new NodeL("MKDISK",""); $$->add(*$2);}
                         $$ = new NodeL("MKFS","");
                         $$->add(*$2);
                      }
-        | EXEC { $$ = $1; };
+        | EXEC { $$ = $1; }
+        | rep REP { $$ = new NodeL("REP","");
+                     $$->add(*$2);
+                   };
 
 
 
@@ -219,3 +223,19 @@ EXEC: exec path igual cadena {
               NodeL *n = new NodeL("path", $4);
               $$->add(*n);
               };
+              
+REP: REP PARAMETRO_REP{
+                     $$ = $1;
+                     $$->add(*$2);
+                    }
+     | PARAMETRO_REP
+    {
+                    $$ = new NodeL("PARAMETRO", "");
+                    $$->add(*$1);
+                  };
+
+PARAMETRO_REP: name igual mbr { $$ = new NodeL("NAME","mbr"); }
+             | name igual disk { $$ = new NodeL("NAME","disk"); }
+             | path igual cadena{ $$ = new NodeL("path", $3); }
+             | path igual ruta { $$ = new NodeL("path",$3); }
+             | id igual idmount { $$ = new NodeL("ident", $3); };
